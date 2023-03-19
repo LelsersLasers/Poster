@@ -1,4 +1,20 @@
-use axum::{extract::State, routing::get, Router};
+use axum::{extract::State, response::IntoResponse, routing::get, Extension, Router};
+
+// use axum_login::{
+//     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SessionLayer},
+//     secrecy::SecretVec,
+//     AuthLayer, AuthUser, RequireAuthorizationLayer, SqliteStore,
+// };
+// use rand::Rng;
+// use std::{collections::HashMap, sync::Arc};
+// use tokio::sync::RwLock;
+
+use axum_login::{
+    axum_sessions::{async_session::MemoryStore, SessionLayer},
+    secrecy::SecretVec,
+    AuthLayer, AuthUser, RequireAuthorizationLayer, SqliteStore,
+};
+use rand::Rng;
 
 // use serde::{Deserialize, Serialize};
 
@@ -12,6 +28,10 @@ use sqlx::{
 
 mod models;
 
+// type AuthContext = axum_login::extractors::AuthContext<i64, models::User, SqliteStore<models::User>>;
+
+type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
+
 const PORT: u16 = 3000;
 
 const DB_PATH: &str = "db.sqlite";
@@ -23,22 +43,39 @@ async fn main() {
 
     // database
     // let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    // let pool = SqlitePoolOptions::new()
+    //     .max_connections(5)
+    //     .connect(DB_PATH)
+    //     .await
+    //     .unwrap();
+
+    let secret = rand::thread_rng().gen::<[u8; 64]>();
+
+    let session_store = MemoryStore::new();
+    let session_layer = SessionLayer::new(session_store, &secret).with_secure(false);
+
     let pool = SqlitePoolOptions::new()
-        .max_connections(5)
         .connect(DB_PATH)
         .await
         .unwrap();
+
+    let user_store = SqliteStore::<models::User>::new(pool);
+    let auth_layer = AuthLayer::new(user_store, &secret);
 
     create_database().await;
 
     // build our application with a route
     let app = Router::new()
-        // `GET /` goes to `root`
         .route("/", get(root))
-        // `POST /users` goes to `create_user`
-        // .route("/users", post(create_user))
         .route("/joe", get(joe))
-        .with_state(pool);
+
+
+        // .route_layer(RequireAuthorizationLayer::<models::User>::login())
+        
+        .layer(auth_layer)
+        .layer(session_layer)
+        ;
+        // .with_state(pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
     tracing::debug!("listening on {}", addr);
@@ -47,6 +84,11 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+async fn logout_handler(mut auth: AuthContext) {
+    dbg!("Logging out user: {}", &auth.current_user);
+    auth.logout().await;
 }
 
 async fn create_database() {
@@ -64,12 +106,15 @@ async fn create_database() {
     .unwrap();
 }
 
-async fn joe(State(pool): State<SqlitePool>) -> &'static str {
+async fn joe() -> &'static str {
+    // State(pool): State<SqlitePool>
     println!("GET /joe");
+
+    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
 
     sqlx::query("INSERT INTO temp_table (x) VALUES (?)")
         .bind(7)
-        .execute(&pool)
+        .execute(&db)
         .await
         .unwrap();
 
@@ -77,8 +122,12 @@ async fn joe(State(pool): State<SqlitePool>) -> &'static str {
 }
 
 // basic handler that responds with a static string
-async fn root(State(pool): State<SqlitePool>) -> String {
+async fn root(
+    // State(pool): State<SqlitePool>
+) -> String {
     println!("GET /");
+
+    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
 
     let mut output = "".to_string();
 
@@ -90,7 +139,7 @@ async fn root(State(pool): State<SqlitePool>) -> String {
 
             format!("{}: {}", id, x)
         })
-        .fetch(&pool);
+        .fetch(&db);
 
     while let Some(row) = stream.next().await {
         output = format!("{}\n{}", output, row.unwrap());
@@ -101,11 +150,11 @@ async fn root(State(pool): State<SqlitePool>) -> String {
 
 // async fn create_user(
 //     // this argument tells axum to parse the request body
-//     // as JSON into a `CreateUser` type
-//     Json(payload): Json<CreateUser>,
-// ) -> (StatusCode, Json<User>) {
+//     // as JSON into a `Createmodels::User` type
+//     Json(payload): Json<Createmodels::User>,
+// ) -> (StatusCode, Json<models::User>) {
 //     // insert your application logic here
-//     let user = User {
+//     let user = models::User {
 //         id: 1337,
 //         username: payload.username,
 //     };
@@ -117,13 +166,13 @@ async fn root(State(pool): State<SqlitePool>) -> String {
 
 // // the input to our `create_user` handler
 // #[derive(Deserialize)]
-// struct CreateUser {
+// struct Createmodels::User {
 //     username: String,
 // }
 
 // // the output to our `create_user` handler
 // #[derive(Serialize)]
-// struct User {
+// struct models::User {
 //     id: u64,
 //     username: String,
 // }
