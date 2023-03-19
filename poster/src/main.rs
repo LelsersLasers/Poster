@@ -1,4 +1,8 @@
-use axum::{extract::State, response::IntoResponse, routing::get, Extension, Router};
+use axum::{
+    // extract::State,
+    response::IntoResponse, routing::get, Extension, Router,
+    response::Redirect,
+};
 
 // use axum_login::{
 //     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SessionLayer},
@@ -11,8 +15,10 @@ use axum::{extract::State, response::IntoResponse, routing::get, Extension, Rout
 
 use axum_login::{
     axum_sessions::{async_session::MemoryStore, SessionLayer},
-    secrecy::SecretVec,
-    AuthLayer, AuthUser, RequireAuthorizationLayer, SqliteStore,
+    // secrecy::SecretVec,
+    AuthLayer,
+    // AuthUser,
+    RequireAuthorizationLayer, SqliteStore,
 };
 use rand::Rng;
 
@@ -23,7 +29,8 @@ use std::net::SocketAddr;
 use futures_util::StreamExt;
 use sqlx::{
     sqlite::{SqlitePoolOptions, SqliteRow},
-    Row, SqlitePool,
+    Row,
+    // SqlitePool,
 };
 
 mod models;
@@ -50,32 +57,40 @@ async fn main() {
     //     .unwrap();
 
     let secret = rand::thread_rng().gen::<[u8; 64]>();
-
     let session_store = MemoryStore::new();
     let session_layer = SessionLayer::new(session_store, &secret).with_secure(false);
-
     let pool = SqlitePoolOptions::new()
         .connect(DB_PATH)
         .await
         .unwrap();
-
     let user_store = SqliteStore::<models::User>::new(pool);
     let auth_layer = AuthLayer::new(user_store, &secret);
 
     create_database().await;
 
     // build our application with a route
-    let app = Router::new()
+    let routes = Router::new()
+
+            .route("/protected", get(protected_handler))
+        // affects every route above it
+        .route_layer(RequireAuthorizationLayer::<models::User>::login())
+
+        // .route("/protected", get(|| async { Redirect::to("/poster") }))
+
         .route("/", get(root))
         .route("/joe", get(joe))
+        
+        .route("/logout", get(logout_handler))
 
-
-        // .route_layer(RequireAuthorizationLayer::<models::User>::login())
         
         .layer(auth_layer)
         .layer(session_layer)
         ;
         // .with_state(pool);
+
+    let app = Router::new()
+        .nest("/poster", routes)
+        .route("/", get(|| async { Redirect::to("/poster") }));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
     tracing::debug!("listening on {}", addr);
@@ -90,6 +105,11 @@ async fn logout_handler(mut auth: AuthContext) {
     dbg!("Logging out user: {}", &auth.current_user);
     auth.logout().await;
 }
+
+async fn protected_handler(Extension(user): Extension<models::User>) -> impl IntoResponse {
+    format!("Logged in as: {}", user.display_name)
+}
+
 
 async fn create_database() {
     let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
