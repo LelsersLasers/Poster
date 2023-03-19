@@ -30,12 +30,11 @@ Simple reddit-esque social media like website (hopefully)
     - content (text)
     - author (not null, integer, foreign key to user: 1 user to many posts)
     - date (not null, date format??)
-    - comments
-        - List of comments under it
     - Upvotes
         - List of users who upvoted
     - Downvotes
         - List of users who downvoted
+    - Score (not null, integer)
 - Comment
     - content (not null, text)
     - author (not null, integer - foreign key to user: 1 user to many comments)

@@ -1,13 +1,16 @@
-use axum::{
-    routing::get, Router, extract::State,
-};
+use axum::{extract::State, routing::get, Router};
 
 // use serde::{Deserialize, Serialize};
 
 use std::net::SocketAddr;
 
-use sqlx::{sqlite::{SqlitePoolOptions, SqliteRow}, SqlitePool, Row};
 use futures_util::StreamExt;
+use sqlx::{
+    sqlite::{SqlitePoolOptions, SqliteRow},
+    Row, SqlitePool,
+};
+
+mod models;
 
 const PORT: u16 = 3000;
 
@@ -34,14 +37,8 @@ async fn main() {
         .route("/", get(root))
         // `POST /users` goes to `create_user`
         // .route("/users", post(create_user))
-
         .route("/joe", get(joe))
-
-
-
         .with_state(pool);
-
-
 
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
     tracing::debug!("listening on {}", addr);
@@ -67,22 +64,20 @@ async fn create_database() {
     .unwrap();
 }
 
-async fn joe(
-    State(pool): State<SqlitePool>,
-) -> &'static str {
+async fn joe(State(pool): State<SqlitePool>) -> &'static str {
     println!("GET /joe");
 
     sqlx::query("INSERT INTO temp_table (x) VALUES (?)")
         .bind(7)
-        .execute(&pool).await.unwrap();
+        .execute(&pool)
+        .await
+        .unwrap();
 
     "Joe"
 }
 
 // basic handler that responds with a static string
-async fn root(
-    State(pool): State<SqlitePool>,
-) -> String {
+async fn root(State(pool): State<SqlitePool>) -> String {
     println!("GET /");
 
     let mut output = "".to_string();
@@ -94,7 +89,6 @@ async fn root(
             let x: i64 = row.try_get("x").unwrap();
 
             format!("{}: {}", id, x)
-
         })
         .fetch(&pool);
 
