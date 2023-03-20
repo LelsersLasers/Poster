@@ -2,16 +2,13 @@ use axum::{
     // extract::State,
     response::IntoResponse, routing::get, Extension, Router,
     response::Redirect,
+    extract::{FromRef, Path},
+    ServiceExt
 };
+use tower::layer::Layer;
+use tower_http::normalize_path::NormalizePathLayer;
 
-// use axum_login::{
-//     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SessionLayer},
-//     secrecy::SecretVec,
-//     AuthLayer, AuthUser, RequireAuthorizationLayer, SqliteStore,
-// };
-// use rand::Rng;
-// use std::{collections::HashMap, sync::Arc};
-// use tokio::sync::RwLock;
+
 
 use axum_login::{
     axum_sessions::{async_session::MemoryStore, SessionLayer},
@@ -21,8 +18,15 @@ use axum_login::{
     RequireAuthorizationLayer, SqliteStore,
 };
 use rand::Rng;
+type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
 
+
+use axum_template::{engine::Engine, Key, RenderHtml};
+use minijinja::{Environment, Source};
+use serde::Serialize;
+type AppEngine = Engine<Environment<'static>>;
 // use serde::{Deserialize, Serialize};
+
 
 use std::net::SocketAddr;
 
@@ -33,15 +37,26 @@ use sqlx::{
     // SqlitePool,
 };
 
+
+
 mod models;
 
-// type AuthContext = axum_login::extractors::AuthContext<i64, models::User, SqliteStore<models::User>>;
-
-type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
-
 const PORT: u16 = 3000;
+const 
+DB_PATH: &str = "db.sqlite";
 
-const DB_PATH: &str = "db.sqlite";
+
+
+#[derive(Clone, FromRef)]
+struct AppState {
+    engine: AppEngine,
+}
+
+
+fn read_file(path: &str) -> String {
+    std::fs::read_to_string(path).unwrap()
+}
+
 
 #[tokio::main]
 async fn main() {
@@ -66,7 +81,25 @@ async fn main() {
     let user_store = SqliteStore::<models::User>::new(pool);
     let auth_layer = AuthLayer::new(user_store, &secret);
 
+
     create_database().await;
+
+
+    // Set up the Handlebars engine with the same route paths as the Axum router
+    // let mut jinja = Environment::new();
+    // jinja
+    //     .add_template("/:name", "<h1>Hello Minijinja!</h1><p>{{name}}</p>")
+    //     .unwrap();
+
+    let mut env = Environment::new();
+    let mut source = Source::new();
+    source.add_template("/poster/", read_file("index.html")).unwrap();
+    env.set_source(source);
+
+    let engine = Engine::from(env);
+    // let app_state = AppState { engine };
+
+
 
     // build our application with a route
     let routes = Router::new()
@@ -85,12 +118,15 @@ async fn main() {
         
         .layer(auth_layer)
         .layer(session_layer)
+        .with_state(AppState { engine })
         ;
         // .with_state(pool);
 
-    let app = Router::new()
+    let all_routes = Router::new()
         .nest("/poster", routes)
         .route("/", get(|| async { Redirect::to("/poster") }));
+
+    let app = NormalizePathLayer::trim_trailing_slash().layer(all_routes);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
     tracing::debug!("listening on {}", addr);
@@ -141,31 +177,45 @@ async fn joe() -> &'static str {
     "Joe"
 }
 
-// basic handler that responds with a static string
+
+#[derive(Debug, Serialize)]
+pub struct Person {
+    name: String,
+}
+
 async fn root(
     // State(pool): State<SqlitePool>
-) -> String {
+    engine: AppEngine,
+    Key(key): Key,
+ ) ->  impl IntoResponse {
     println!("GET /");
+    println!("key: {:?}", key);
 
-    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    // let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
 
-    let mut output = "".to_string();
+    // let mut output = "".to_string();
 
-    let mut stream = sqlx::query("SELECT * FROM temp_table")
-        .map(|row: SqliteRow| {
-            // map the row into a user-defined domain type
-            let id: i64 = row.try_get("id").unwrap();
-            let x: i64 = row.try_get("x").unwrap();
+    // let mut stream = sqlx::query("SELECT * FROM temp_table")
+    //     .map(|row: SqliteRow| {
+    //         // map the row into a user-defined domain type
+    //         let id: i64 = row.try_get("id").unwrap();
+    //         let x: i64 = row.try_get("x").unwrap();
 
-            format!("{}: {}", id, x)
-        })
-        .fetch(&db);
+    //         format!("{}: {}", id, x)
+    //     })
+    //     .fetch(&db);
 
-    while let Some(row) = stream.next().await {
-        output = format!("{}\n{}", output, row.unwrap());
-    }
+    // while let Some(row) = stream.next().await {
+    //     output = format!("{}\n{}", output, row.unwrap());
+    // }
 
-    "Hello, World!".to_string() + &output
+    // "Hello, World!".to_string() + &output
+
+    let person = Person {
+        name: "Joe".to_string(),
+    };
+
+    RenderHtml(key, engine, person)
 }
 
 // async fn create_user(

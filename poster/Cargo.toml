@@ -6,8 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = "0.6.11"
+axum = { version = "0.6.11", features = ["macros"] }
 tokio = { version = "1.0", features = ["full"] }
+tower = { version = "0.4" }
+tower-http = { version = "0.3", features = ["normalize-path"] }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.68"
@@ -19,8 +21,8 @@ futures-util = "0.3.27"
 axum-login = { version = "0.4.1", features = ["sqlite"] }
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 
-# axum-template = "0.14.0"
-minijinja = "0.30.7"
+axum-template = { version = "0.14.0", features = ["minijinja"] }
+minijinja = { version = "0.30.7", features = ["source"] }
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
