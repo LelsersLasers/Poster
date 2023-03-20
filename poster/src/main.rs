@@ -40,11 +40,14 @@ use sqlx::{
 
 
 mod models;
+mod utils;
 
 const PORT: u16 = 3000;
-const 
-DB_PATH: &str = "db.sqlite";
+const DB_PATH: &str = "db.sqlite";
 
+const BASE_PATH: &str = "/poster";
+const TEMPLATE_PATH: &str = "templates/";
+const SQL_PATH: &str = "sql/";
 
 
 #[derive(Clone, FromRef)]
@@ -53,9 +56,6 @@ struct AppState {
 }
 
 
-fn read_file(path: &str) -> String {
-    std::fs::read_to_string(path).unwrap()
-}
 
 
 #[tokio::main]
@@ -93,7 +93,11 @@ async fn main() {
 
     let mut env = Environment::new();
     let mut source = Source::new();
-    source.add_template("/poster/", read_file("index.html")).unwrap();
+    source
+        .add_template(
+            BASE_PATH.to_string() + "/",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "index.html"))
+        ).unwrap();
     env.set_source(source);
 
     let engine = Engine::from(env);
@@ -108,7 +112,7 @@ async fn main() {
         // affects every route above it
         .route_layer(RequireAuthorizationLayer::<models::User>::login())
 
-        // .route("/protected", get(|| async { Redirect::to("/poster") }))
+        // .route("/protected", get(|| async { Redirect::to(BASE_PATH) }))
 
         .route("/", get(root))
         .route("/joe", get(joe))
@@ -123,8 +127,8 @@ async fn main() {
         // .with_state(pool);
 
     let all_routes = Router::new()
-        .nest("/poster", routes)
-        .route("/", get(|| async { Redirect::to("/poster") }));
+        .nest(BASE_PATH, routes)
+        .route("/", get(|| async { Redirect::to(BASE_PATH) }));
 
     let app = NormalizePathLayer::trim_trailing_slash().layer(all_routes);
 
@@ -179,8 +183,17 @@ async fn joe() -> &'static str {
 
 
 #[derive(Debug, Serialize)]
-pub struct Person {
-    name: String,
+pub struct RootData {
+    // ids_and_xs: Vec<(i64, i64)>,
+    // xs: Vec<i64>
+    ids_and_xs: Vec<IdAndX>,
+}
+
+
+#[derive(Debug, Serialize)]
+pub struct IdAndX {
+    id: i64,
+    x: i64,
 }
 
 async fn root(
@@ -191,31 +204,30 @@ async fn root(
     println!("GET /");
     println!("key: {:?}", key);
 
-    // let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
 
-    // let mut output = "".to_string();
+    let mut data = RootData { ids_and_xs: Vec::new() };
 
-    // let mut stream = sqlx::query("SELECT * FROM temp_table")
-    //     .map(|row: SqliteRow| {
-    //         // map the row into a user-defined domain type
-    //         let id: i64 = row.try_get("id").unwrap();
-    //         let x: i64 = row.try_get("x").unwrap();
+    let mut stream = sqlx::query("SELECT * FROM temp_table")
+        .map(|row: SqliteRow| {
+            // map the row into a user-defined domain type
+            let id: i64 = row.try_get("id").unwrap();
+            let x: i64 = row.try_get("x").unwrap();
 
-    //         format!("{}: {}", id, x)
-    //     })
-    //     .fetch(&db);
+            IdAndX { id, x }
+        })
+        .fetch(&db);
 
-    // while let Some(row) = stream.next().await {
-    //     output = format!("{}\n{}", output, row.unwrap());
-    // }
+    while let Some(row) = stream.next().await {
+        // let row = row.unwrap();
+        data.ids_and_xs.push(row.unwrap());
+        // data.ids.push(row.0);
+        // data.xs.push(row.1);
+    }
 
     // "Hello, World!".to_string() + &output
 
-    let person = Person {
-        name: "Joe".to_string(),
-    };
-
-    RenderHtml(key, engine, person)
+    RenderHtml(key, engine, data)
 }
 
 // async fn create_user(
