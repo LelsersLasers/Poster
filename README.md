@@ -30,11 +30,12 @@ Simple reddit-esque social media like website (hopefully)
     - content (text)
     - author (not null, integer, foreign key to user: 1 user to many posts)
     - date (not null, date format??)
-    - Upvotes
+    - Upvotes (many to many with user)
         - List of users who upvoted
-    - Downvotes
+    - Downvotes (many to many with user)
         - List of users who downvoted
     - Score (not null, integer)
+        - Upvotes - Downvotes
 - Comment
     - content (not null, text)
     - author (not null, integer - foreign key to user: 1 user to many comments)
@@ -45,7 +46,8 @@ Simple reddit-esque social media like website (hopefully)
         - List of users who downvoted
     - Score (not null, integer)
         - Upvotes - Downvotes
-    - parent (not null, integer - foreign key to post or comment: 1 post or comment to many comments)
+    - parent post (foreign key to post 1:many, can be null if parent comment is not)
+    - parrent comment (foreign key 1:many to comment, can be null if parent post is not)
 
 ### Views
 
