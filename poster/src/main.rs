@@ -96,8 +96,13 @@ async fn main() {
     let mut source = Source::new();
     source
         .add_template(
+            TEMPLATE_PATH.to_string() +  "base.html",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "base.html"))
+        ).unwrap();
+    source
+        .add_template(
             BASE_PATH.to_string() + "/",
-            utils::read_file(&(TEMPLATE_PATH.to_string() + "index.html"))
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "welcome.html"))
         ).unwrap();
     env.set_source(source);
 
