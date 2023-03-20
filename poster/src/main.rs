@@ -2,7 +2,7 @@ use axum::{
     // extract::State,
     response::IntoResponse, routing::get, Extension, Router,
     response::Redirect,
-    extract::{FromRef, Path},
+    extract::FromRef,
     ServiceExt
 };
 use tower::layer::Layer;
@@ -83,6 +83,7 @@ async fn main() {
 
 
     create_database().await;
+    // add_test_user().await;
 
 
     // Set up the Handlebars engine with the same route paths as the Axum router
@@ -116,7 +117,9 @@ async fn main() {
 
         .route("/", get(root))
         .route("/joe", get(joe))
+
         
+        .route("/login", get(login_handler))
         .route("/logout", get(logout_handler))
 
         
@@ -145,11 +148,42 @@ async fn logout_handler(mut auth: AuthContext) {
     dbg!("Logging out user: {}", &auth.current_user);
     auth.logout().await;
 }
+async fn login_handler(mut auth: AuthContext) -> impl IntoResponse {
+    let user = models::User {
+        id: 1,
+        username: "username".to_string(),
+        display_name: "Joe's Account".to_string(),
+        password_hash: "password".to_string()
+    };
+    auth.login(&user).await.unwrap();
+
+    Redirect::to(&(BASE_PATH.to_string() + "/protected"))
+}
 
 async fn protected_handler(Extension(user): Extension<models::User>) -> impl IntoResponse {
     format!("Logged in as: {}", user.display_name)
 }
 
+
+async fn add_test_user() {
+    let user = models::User {
+        id: 1,
+        username: "username".to_string(),
+        display_name: "Joe's Account".to_string(),
+        password_hash: "password".to_string()
+    };
+
+    
+    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    
+    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
+        .bind(user.username)
+        .bind(user.display_name)
+        .bind(user.password_hash)
+        .execute(&db)
+        .await
+        .unwrap();
+}
 
 async fn create_database() {
     let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
@@ -161,9 +195,14 @@ async fn create_database() {
         )
         "#,
     )
-    .execute(&db)
-    .await
-    .unwrap();
+        .execute(&db)
+        .await
+        .unwrap();
+
+    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeUsersTable.sql")))
+        .execute(&db)
+        .await
+        .unwrap();
 }
 
 async fn joe() -> &'static str {
