@@ -167,15 +167,7 @@ async fn main() {
 
 async fn add_test_user() {
     let user = models::User::new("username".to_string(), "password".to_string());
-    
-    let db = sql::connect_to_db().await;
-    
-    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
-        .bind(user.id)
-        .bind(user.password_hash)
-        .execute(&db)
-        .await
-        .unwrap();
+    user.add_to_db().await;    
 }
 
 async fn create_database() {

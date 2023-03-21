@@ -13,6 +13,48 @@ impl User {
             password_hash: utils::hash_password(&password)
         }
     }
+    // pub async fn try_find(&self) -> Option<Self> {
+    //     let db = sql::connect_to_db().await;
+    //     let stream = sqlx::query("SELECT * FROM users WHERE id = ? AND password_hash = ?")
+    //         .bind(&self.id)
+    //         .bind(&self.password_hash)
+    //         .map(|row: SqliteRow| {
+    //             Self {
+    //                 id: row.try_get("id").unwrap(),
+    //                 password_hash: row.try_get("password_hash").unwrap()
+    //             }
+    //         })
+    //         .fetch_optional(&db);
+    
+    //     stream.await.unwrap()        
+    // }
+    pub async fn exists(&self) -> bool {
+        let db = sql::connect_to_db().await;
+        let find_result = sqlx::query("SELECT COUNT(id) AS found FROM users WHERE id = ? AND password_hash = ?")
+            .bind(&self.id)
+            .bind(&self.password_hash)
+            .map(|row: SqliteRow| {
+                let count: u32 = row.try_get("found").unwrap();
+                count
+            })
+            .fetch_one(&db)
+            .await
+            .unwrap();
+
+        find_result == 1
+    }
+    pub async fn add_to_db(&self) {
+        let already_exists = self.exists().await;
+        if !already_exists {
+            let db = sql::connect_to_db().await;
+            sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
+                .bind(&self.id)
+                .bind(&self.password_hash)
+                .execute(&db)
+                .await
+                .unwrap();
+        }
+    }
 }
 impl AuthUser for User {
     fn get_id(&self) -> String {

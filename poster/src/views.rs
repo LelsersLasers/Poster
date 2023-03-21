@@ -14,18 +14,11 @@ pub async fn attempt_login(
     user: &models::User,
 ) -> bool {
     // NOTE: must always use this over 'auth.login' directly
-    let db = sql::connect_to_db().await;
-    let stream = sqlx::query("SELECT * FROM users WHERE id = ? AND password_hash = ?")
-        .bind(&user.id)
-        .bind(&user.password_hash)
-        .fetch_optional(&db);
-    
-    if let Some(_row) = stream.await.unwrap() {
+    let user_exists = user.exists().await;
+    if user_exists {
         auth.login(&user).await.unwrap();
-        true
-    } else {
-        false
     }
+    user_exists
 }
 
 #[derive(Deserialize)]
@@ -41,7 +34,6 @@ pub async fn login_handler(
     let user = models::User::new(login_form.username, login_form.password);
 
     let login_result = attempt_login(&mut auth, &user).await; 
-        
     if login_result {
         Redirect::to(&(BASE_PATH.to_string() + "/protected"))
     } else {
@@ -60,9 +52,7 @@ pub async fn protected_handler(
     // Extension(user): Extension<models::User>
     auth: AuthContext
 ) -> impl IntoResponse {
-
-    let maybe_user = auth.current_user;
-    if let Some(user) = maybe_user {
+    if let Some(user) = auth.current_user {
         format!("Logged in as: {}", user.id).into_response()
     } else {
         Redirect::to(BASE_PATH).into_response()
@@ -128,36 +118,6 @@ pub async fn root(
         // data.xs.push(row.1);
     }
 
-    // "Hello, World!".to_string() + &output
 
     RenderHtml(key, engine, data)
 }
-
-// async fn create_user(
-//     // this argument tells axum to parse the request body
-//     // as JSON into a `Createmodels::User` type
-//     Json(payload): Json<Createmodels::User>,
-// ) -> (StatusCode, Json<models::User>) {
-//     // insert your application logic here
-//     let user = models::User {
-//         id: 1337,
-//         username: payload.username,
-//     };
-
-//     // this will be converted into a JSON response
-//     // with a status code of `201 Created`
-//     (StatusCode::CREATED, Json(user))
-// }
-
-// // the input to our `create_user` handler
-// #[derive(Deserialize)]
-// struct Createmodels::User {
-//     username: String,
-// }
-
-// // the output to our `create_user` handler
-// #[derive(Serialize)]
-// struct models::User {
-//     id: u64,
-//     username: String,
-// }

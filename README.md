@@ -4,6 +4,11 @@ Simple reddit-esque social media like website (hopefully)
 
 ## NOTES
 
+### TODO
+
+- SQL views
+- Everything else
+
 ### Stuff
 
 - DB
