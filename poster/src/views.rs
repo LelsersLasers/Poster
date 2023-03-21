@@ -1,30 +1,56 @@
-use axum::{
-    // extract::State,
-    response::IntoResponse, Extension,
-    response::Redirect,
-};
-
 use crate::*;
 
 
-pub async fn logout_handler(mut auth: AuthContext) {
+pub async fn logout_handler(mut auth: AuthContext) -> impl IntoResponse {
     dbg!("Logging out user: {}", &auth.current_user);
     auth.logout().await;
-}
-pub async fn login_handler(mut auth: AuthContext) -> impl IntoResponse {
-    let user = models::User {
-        id: 1,
-        username: "username".to_string(),
-        display_name: "Joe's Account".to_string(),
-        password_hash: "password".to_string()
-    };
-    auth.login(&user).await.unwrap();
 
-    Redirect::to(&(BASE_PATH.to_string() + "/protected"))
+    Redirect::to(&(BASE_PATH.to_string() + "/"))
+}
+
+#[derive(Deserialize)]
+pub struct LoginForm {
+    username: String,
+    password: String,
+}
+
+pub async fn login_handler(
+    mut auth: AuthContext,
+    Form(login_form): Form<LoginForm>,
+) -> impl IntoResponse {
+
+    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+
+    let user = models::User {
+        id: login_form.username,
+        password_hash: login_form.password,
+    };
+
+    let stream = sqlx::query("SELECT * FROM users WHERE id = ? AND password_hash = ?")
+        .bind(&user.id)
+        .bind(&user.password_hash)
+        .fetch_optional(&db);
+    
+    if let Some(_row) = stream.await.unwrap() {
+        auth.login(&user).await.unwrap();
+        Redirect::to(&(BASE_PATH.to_string() + "/protected"))
+    } else {
+        Redirect::to(&(BASE_PATH.to_string() + "/login"))
+    }
+
+    // Redirect::to(&(BASE_PATH.to_string() + "/protected"))
+    // RenderHtml(key, engine, ())
+}
+
+pub async fn login(
+    engine: AppEngine,
+    Key(key): Key,
+) -> impl IntoResponse {
+    RenderHtml(key, engine, ())
 }
 
 pub async fn protected_handler(Extension(user): Extension<models::User>) -> impl IntoResponse {
-    format!("Logged in as: {}", user.display_name)
+    format!("Logged in as: {}", user.id)
 }
 
 pub async fn joe() -> &'static str {

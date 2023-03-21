@@ -2,30 +2,25 @@
 
 
 {% block body %}
-	<form action="{% url 'wordle:check_login' %}" method="post">
+	<form action="{{ basePath ~ 'login_handler'}}" method="post">
 
 		<label for="username">Username</label>
 		<br />
-		<input type="text" id="username" name="username" value="{{ a }}" autofocus />
+		<input type="text" id="username" name="username" autofocus />
 		<br />
 		
 		<label for="password">Password</label>
 		<br />
-		<input type="password" id="password" name="password" value="{{ b }}" />
-		<br />
-
-		<!-- {% if error_message %}
-			<strong>{{ error_message }}</strong>
-		{% endif %} -->
+		<input type="password" id="password" name="password" />
 		<br />
 
 		<button type="submit">
 			Login
 		</button>
 		<br />
-
-		<a href="{% url 'wordle:display_signup_page' %}">
-			<button class="smallButton" type="button">Don't have an account? (Signup)</button>
-		</a>
 	</form>
+
+    <h1>
+        Login: {{ basePath }}
+    </h1>
 {% endblock %}

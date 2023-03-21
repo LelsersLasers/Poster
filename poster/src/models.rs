@@ -8,30 +8,27 @@ use axum_login::{
 
 #[derive(Debug, Default, Clone, sqlx::FromRow, PartialEq, PartialOrd)]
 pub struct User {
-    pub id: i64,
-    pub username: String,
-    pub display_name: String,
-    pub password_hash: String,
+    pub id: String, // database primary key = username
+    pub password_hash: String, // TODO: hash this
 }
 impl AuthUser for User {
     fn get_id(&self) -> String {
-        format!("{}", self.id)
+        self.id.clone()
     }
 
     fn get_password_hash(&self) -> SecretVec<u8> {
         SecretVec::new(self.password_hash.clone().into())
     }
 }
-// impl User {
-//     pub fn get_rusty_user() -> Self {
-//         Self {
-//             id: "1".to_string(),
-//             username: "username".to_string(),
-//             display_name: "Ferris the Crab".to_string(),
-//             password_hash: "password".to_string(),
-//         }
-//     }
-// }
+
+
+
+pub struct Account {
+    pub id: i64,
+    pub display_name: String,
+
+    pub user: User, // 1 Account : 1 User
+}
 
 pub struct Post {
     pub id: i64,
@@ -39,10 +36,10 @@ pub struct Post {
     pub context: String,
     pub date: u64, // sec since epoch
 
-    pub author: User, // 1 User : many Post
+    pub author: Account, // 1 Account : many Post
     // many Post : many User
-    pub upvotes: Vec<User>,
-    pub downvotes: Vec<User>,
+    pub upvotes: Vec<Account>,
+    pub downvotes: Vec<Account>,
 
     pub score: u32, // upvotes - downvotes
 }
@@ -52,10 +49,10 @@ pub struct Comment {
     pub context: String,
     pub date: u64, // sec since epoch
 
-    pub author: User, // 1 User : many Post
+    pub author: Account, // 1 Account : many Post
     // many Post : many User
-    pub upvotes: Vec<User>,
-    pub downvotes: Vec<User>,
+    pub upvotes: Vec<Account>,
+    pub downvotes: Vec<Account>,
 
     pub parent: Box<PostOrComment>,
 

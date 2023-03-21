@@ -1,12 +1,13 @@
 use axum::{
     // extract::State,
-    // response::IntoResponse,
-    routing::get,
-    // Extension,
+    response::IntoResponse,
+    routing::{get, post},
+    Extension,
     Router,
     response::Redirect,
     extract::FromRef,
-    ServiceExt
+    ServiceExt,
+    Form,
 };
 use tower::layer::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
@@ -26,9 +27,8 @@ type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore
 
 use axum_template::{engine::Engine, Key, RenderHtml};
 use minijinja::{Environment, Source};
-use serde::Serialize;
 type AppEngine = Engine<Environment<'static>>;
-// use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 
 use std::net::SocketAddr;
@@ -100,10 +100,16 @@ async fn main() {
             TEMPLATE_PATH.to_string() +  "base.html",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "base.html"))
         ).unwrap();
+
     source
         .add_template(
             BASE_PATH.to_string() + "/",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "welcome.html"))
+        ).unwrap();
+    source
+        .add_template(
+            BASE_PATH.to_string() + "/login",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "login.html"))
         ).unwrap();
     env.set_source(source);
 
@@ -125,7 +131,8 @@ async fn main() {
         .route("/joe", get(views::joe))
 
         
-        .route("/login", get(views::login_handler))
+        .route("/login", get(views::login))
+        .route("/login_handler", post(views::login_handler))
         .route("/logout", get(views::logout_handler))
 
         
@@ -136,8 +143,9 @@ async fn main() {
         // .with_state(pool);
 
     let all_routes = Router::new()
+        .route("/", get(|| async { Redirect::to(BASE_PATH) })) // TODO
         .nest(BASE_PATH, routes)
-        .route("/", get(|| async { Redirect::to(BASE_PATH) }));
+        ;
 
     let app = NormalizePathLayer::trim_trailing_slash().layer(all_routes);
 
@@ -153,9 +161,7 @@ async fn main() {
 
 // async fn add_test_user() {
 //     let user = models::User {
-//         id: 1,
-//         username: "username".to_string(),
-//         display_name: "Joe's Account".to_string(),
+//         id: "username".to_string(),
 //         password_hash: "password".to_string()
 //     };
 
@@ -163,8 +169,7 @@ async fn main() {
 //     let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
     
 //     sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
-//         .bind(user.username)
-//         .bind(user.display_name)
+//         .bind(user.id)
 //         .bind(user.password_hash)
 //         .execute(&db)
 //         .await
@@ -186,6 +191,11 @@ async fn create_database() {
     //     .unwrap();
 
     sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeUsersTable.sql")))
+        .execute(&db)
+        .await
+        .unwrap();
+
+    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeAccountsTable.sql")))
         .execute(&db)
         .await
         .unwrap();

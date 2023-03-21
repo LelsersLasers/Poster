@@ -11,39 +11,39 @@ Simple reddit-esque social media like website (hopefully)
 - Templates
     - minijinja?
 - User auth
-    - idk
-    - Maybe axum_login
-        - https://docs.rs/axum-login/latest/axum_login/#users
+    - axum_login
 - Framework
     - axum
 
 ### Models
 
 - User
+    - username (primary key, text)
+    - password_hash (not null, text)
+- Account
     - id (primary key, autoincrement, integer)
-    - username (unique, not null, text)
-    - display name (unique, not null, text)
-    - password (not null, text)
+    - display_name (not null, unique text)
+    - user (not full, integer, foregin key to user: 1 acount to 1 user)
 - Post
     - id (primary key, autoincrement, integer)
     - title (not null, text)
     - content (text)
-    - author (not null, integer, foreign key to user: 1 user to many posts)
+    - author (not null, integer, foreign key to account: 1 account to many posts)
     - date (not null, date format??)
-    - Upvotes (many to many with user)
-        - List of users who upvoted
-    - Downvotes (many to many with user)
-        - List of users who downvoted
+    - Upvotes (many to many with account)
+        - List of accounts who upvoted
+    - Downvotes (many to many with accounts)
+        - List of accounts who downvoted
     - Score (not null, integer)
         - Upvotes - Downvotes
 - Comment
     - content (not null, text)
-    - author (not null, integer - foreign key to user: 1 user to many comments)
+    - author (not null, integer - foreign key to account: 1 account to many comments)
     - date (not null, date format??)
-    - Upvotes (many to many with user)
-        - List of users who upvoted
-    - Downvotes (many to many with user)
-        - List of users who downvoted
+    - Upvotes (many to many with account)
+        - List of accounts who upvoted
+    - Downvotes (many to many with accounts)
+        - List of accounts who downvoted
     - Score (not null, integer)
         - Upvotes - Downvotes
     - parent post (foreign key to post 1:many, can be null if parent comment is not)

@@ -1,3 +1,3 @@
 INSERT INTO users 
-    (username, display_name, password_hash)
-    VALUES (?, ?, ?);
+    (id, password_hash)
+    VALUES (?, ?);
