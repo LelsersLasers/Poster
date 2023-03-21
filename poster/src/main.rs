@@ -45,6 +45,7 @@ use sqlx::{
 mod models;
 mod utils;
 mod views;
+mod sql;
 
 
 
@@ -70,7 +71,7 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     // database
-    // let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    // let db = sql::connect_to_db().await;
     // let pool = SqlitePoolOptions::new()
     //     .max_connections(5)
     //     .connect(DB_PATH)
@@ -123,7 +124,7 @@ async fn main() {
 
             .route("/protected", get(views::protected_handler))
         // affects every route above it
-        .route_layer(RequireAuthorizationLayer::<models::User>::login())
+        // .route_layer(RequireAuthorizationLayer::<models::User>::login())
 
         // .route("/protected", get(|| async { Redirect::to(BASE_PATH) }))
 
@@ -166,7 +167,7 @@ async fn main() {
 //     };
 
     
-//     let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+//    let db = sql::connect_to_db().await;
     
 //     sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
 //         .bind(user.id)
@@ -177,7 +178,7 @@ async fn main() {
 // }
 
 async fn create_database() {
-    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    let db = sql::connect_to_db().await;
     // sqlx::query(
     //     r#"
     //     CREATE TABLE IF NOT EXISTS temp_table (
@@ -190,13 +191,13 @@ async fn create_database() {
     //     .await
     //     .unwrap();
 
-    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeUsersTable.sql")))
+    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeTables.sql")))
         .execute(&db)
         .await
         .unwrap();
 
-    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeAccountsTable.sql")))
-        .execute(&db)
-        .await
-        .unwrap();
+    // sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeAccountsTable.sql")))
+    //     .execute(&db)
+    //     .await
+    //     .unwrap();
 }

@@ -14,18 +14,13 @@ pub struct LoginForm {
     password: String,
 }
 
-pub async fn login_handler(
-    mut auth: AuthContext,
-    Form(login_form): Form<LoginForm>,
-) -> impl IntoResponse {
 
-    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
-
-    let user = models::User {
-        id: login_form.username,
-        password_hash: login_form.password,
-    };
-
+pub async fn attempt_login(
+    auth: &mut AuthContext,
+    user: &models::User,
+) -> bool {
+    // NOTE: must always use this over 'auth.login' directly
+    let db = sql::connect_to_db().await;
     let stream = sqlx::query("SELECT * FROM users WHERE id = ? AND password_hash = ?")
         .bind(&user.id)
         .bind(&user.password_hash)
@@ -33,13 +28,29 @@ pub async fn login_handler(
     
     if let Some(_row) = stream.await.unwrap() {
         auth.login(&user).await.unwrap();
+        true
+    } else {
+        false
+    }
+}
+
+pub async fn login_handler(
+    mut auth: AuthContext,
+    Form(login_form): Form<LoginForm>,
+) -> impl IntoResponse {
+
+    let user = models::User {
+        id: login_form.username,
+        password_hash: login_form.password,
+    };
+
+    let login_result = attempt_login(&mut auth, &user).await; 
+        
+    if login_result {
         Redirect::to(&(BASE_PATH.to_string() + "/protected"))
     } else {
         Redirect::to(&(BASE_PATH.to_string() + "/login"))
     }
-
-    // Redirect::to(&(BASE_PATH.to_string() + "/protected"))
-    // RenderHtml(key, engine, ())
 }
 
 pub async fn login(
@@ -49,15 +60,24 @@ pub async fn login(
     RenderHtml(key, engine, ())
 }
 
-pub async fn protected_handler(Extension(user): Extension<models::User>) -> impl IntoResponse {
-    format!("Logged in as: {}", user.id)
+pub async fn protected_handler(
+    // Extension(user): Extension<models::User>
+    auth: AuthContext
+) -> impl IntoResponse {
+
+    let maybe_user = auth.current_user;
+    if let Some(user) = maybe_user {
+        format!("Logged in as: {}", user.id).into_response()
+    } else {
+        Redirect::to(BASE_PATH).into_response()
+    }
 }
 
 pub async fn joe() -> &'static str {
     // State(pool): State<SqlitePool>
     println!("GET /joe");
 
-    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    let db = sql::connect_to_db().await;
 
     sqlx::query("INSERT INTO temp_table (x) VALUES (?)")
         .bind(7)
@@ -91,7 +111,7 @@ pub async fn root(
     println!("GET /");
     println!("key: {:?}", key);
 
-    let db = sqlx::SqlitePool::connect(DB_PATH).await.unwrap();
+    let db = sql::connect_to_db().await;
 
     let mut data = RootData { ids_and_xs: Vec::new() };
 
