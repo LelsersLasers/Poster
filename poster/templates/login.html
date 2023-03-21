@@ -1,0 +1,31 @@
+{% extends "templates/base.html" %}
+
+
+{% block body %}
+	<form action="{% url 'wordle:check_login' %}" method="post">
+
+		<label for="username">Username</label>
+		<br />
+		<input type="text" id="username" name="username" value="{{ a }}" autofocus />
+		<br />
+		
+		<label for="password">Password</label>
+		<br />
+		<input type="password" id="password" name="password" value="{{ b }}" />
+		<br />
+
+		<!-- {% if error_message %}
+			<strong>{{ error_message }}</strong>
+		{% endif %} -->
+		<br />
+
+		<button type="submit">
+			Login
+		</button>
+		<br />
+
+		<a href="{% url 'wordle:display_signup_page' %}">
+			<button class="smallButton" type="button">Don't have an account? (Signup)</button>
+		</a>
+	</form>
+{% endblock %}
