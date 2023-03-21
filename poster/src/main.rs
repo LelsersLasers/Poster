@@ -2,7 +2,7 @@ use axum::{
     // extract::State,
     response::IntoResponse,
     routing::{get, post},
-    Extension,
+    // Extension,
     Router,
     response::Redirect,
     extract::FromRef,
@@ -16,10 +16,11 @@ use tower_http::normalize_path::NormalizePathLayer;
 
 use axum_login::{
     axum_sessions::{async_session::MemoryStore, SessionLayer},
-    // secrecy::SecretVec,
+    secrecy::SecretVec,
     AuthLayer,
-    // AuthUser,
-    RequireAuthorizationLayer, SqliteStore,
+    AuthUser,
+    // RequireAuthorizationLayer,
+    SqliteStore,
 };
 use rand::Rng;
 type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
@@ -40,6 +41,9 @@ use sqlx::{
     // SqlitePool,
 };
 
+
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hasher;
 
 
 mod models;
@@ -122,7 +126,8 @@ async fn main() {
     // build our application with a route
     let routes = Router::new()
 
-            .route("/protected", get(views::protected_handler))
+        .route("/protected", get(views::protected_handler))
+
         // affects every route above it
         // .route_layer(RequireAuthorizationLayer::<models::User>::login())
 
@@ -160,22 +165,18 @@ async fn main() {
 }
 
 
-// async fn add_test_user() {
-//     let user = models::User {
-//         id: "username".to_string(),
-//         password_hash: "password".to_string()
-//     };
-
+async fn add_test_user() {
+    let user = models::User::new("username".to_string(), "password".to_string());
     
-//    let db = sql::connect_to_db().await;
+    let db = sql::connect_to_db().await;
     
-//     sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
-//         .bind(user.id)
-//         .bind(user.password_hash)
-//         .execute(&db)
-//         .await
-//         .unwrap();
-// }
+    sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
+        .bind(user.id)
+        .bind(user.password_hash)
+        .execute(&db)
+        .await
+        .unwrap();
+}
 
 async fn create_database() {
     let db = sql::connect_to_db().await;

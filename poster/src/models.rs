@@ -1,15 +1,18 @@
-use axum_login::{
-    // axum_sessions::{async_session::MemoryStore, SessionLayer},
-    secrecy::SecretVec,
-    AuthUser,
-    // AuthLayer, RequireAuthorizationLayer, SqliteStore,
-};
+use crate::*;
 
 
 #[derive(Debug, Default, Clone, sqlx::FromRow, PartialEq, PartialOrd)]
 pub struct User {
     pub id: String, // database primary key = username
-    pub password_hash: String, // TODO: hash this
+    pub password_hash: String, 
+}
+impl User {
+    pub fn new(username: String, password: String) -> Self {
+        User {
+            id: username,
+            password_hash: utils::hash_password(&password)
+        }
+    }
 }
 impl AuthUser for User {
     fn get_id(&self) -> String {

@@ -8,12 +8,6 @@ pub async fn logout_handler(mut auth: AuthContext) -> impl IntoResponse {
     Redirect::to(&(BASE_PATH.to_string() + "/"))
 }
 
-#[derive(Deserialize)]
-pub struct LoginForm {
-    username: String,
-    password: String,
-}
-
 
 pub async fn attempt_login(
     auth: &mut AuthContext,
@@ -34,15 +28,17 @@ pub async fn attempt_login(
     }
 }
 
+#[derive(Deserialize)]
+pub struct LoginForm {
+    username: String,
+    password: String,
+}
 pub async fn login_handler(
     mut auth: AuthContext,
     Form(login_form): Form<LoginForm>,
 ) -> impl IntoResponse {
 
-    let user = models::User {
-        id: login_form.username,
-        password_hash: login_form.password,
-    };
+    let user = models::User::new(login_form.username, login_form.password);
 
     let login_result = attempt_login(&mut auth, &user).await; 
         
