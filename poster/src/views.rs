@@ -74,32 +74,35 @@ pub async fn joe() -> &'static str {
     "Joe"
 }
 
-
-#[derive(Debug, Serialize)]
-pub struct RootData {
-    // ids_and_xs: Vec<(i64, i64)>,
-    // xs: Vec<i64>
-    ids_and_xs: Vec<IdAndX>,
-}
-
-
-#[derive(Debug, Serialize)]
-pub struct IdAndX {
-    id: i64,
-    x: i64,
-}
-
 pub async fn root(
     // State(pool): State<SqlitePool>
+    auth: AuthContext,
     engine: AppEngine,
     Key(key): Key,
  ) ->  impl IntoResponse {
     println!("GET /");
     println!("key: {:?}", key);
 
+    #[derive(Debug, Serialize)]
+    pub struct RootData {
+        // ids_and_xs: Vec<(i64, i64)>,
+        // xs: Vec<i64>
+        ids_and_xs: Vec<IdAndX>,
+        logged_in: bool,
+    }
+
+
+    #[derive(Debug, Serialize)]
+    pub struct IdAndX {
+        id: i64,
+        x: i64,
+    }
     let db = sql::connect_to_db().await;
 
-    let mut data = RootData { ids_and_xs: Vec::new() };
+    let mut data = RootData {
+        ids_and_xs: Vec::new(),
+        logged_in: auth.current_user.is_some() 
+    };
 
     let mut stream = sqlx::query("SELECT * FROM temp_table;")
         .map(|row: SqliteRow| {
