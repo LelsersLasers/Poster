@@ -30,7 +30,7 @@ impl User {
     // }
     pub async fn exists(&self) -> bool {
         let db = sql::connect_to_db().await;
-        let find_result = sqlx::query("SELECT COUNT(id) AS found FROM users WHERE id = ? AND password_hash = ?")
+        let result = sqlx::query(sql::FIND_USER_SQL)
             .bind(&self.id)
             .bind(&self.password_hash)
             .map(|row: SqliteRow| {
@@ -41,13 +41,27 @@ impl User {
             .await
             .unwrap();
 
-        find_result == 1
+        result == 1
+    }
+    pub async fn username_exists(username: &str) -> bool {
+        let db = sql::connect_to_db().await;
+        let result = sqlx::query(sql::FIND_USER_USERNAME_SQL)
+            .bind(username)
+            .map(|row: SqliteRow| {
+                let count: u32 = row.try_get("found").unwrap();
+                count
+            })
+            .fetch_one(&db)
+            .await
+            .unwrap();
+
+        result == 1
     }
     pub async fn add_to_db(&self) {
         let already_exists = self.exists().await;
         if !already_exists {
             let db = sql::connect_to_db().await;
-            sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "addUser.sql")))
+            sqlx::query(sql::ADD_USER_SQL)
                 .bind(&self.id)
                 .bind(&self.password_hash)
                 .execute(&db)

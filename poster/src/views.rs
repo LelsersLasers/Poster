@@ -16,7 +16,7 @@ pub async fn attempt_login(
     // NOTE: must always use this over 'auth.login' directly
     let user_exists = user.exists().await;
     if user_exists {
-        auth.login(&user).await.unwrap();
+        auth.login(user).await.unwrap();
     }
     user_exists
 }
@@ -65,7 +65,7 @@ pub async fn joe() -> &'static str {
 
     let db = sql::connect_to_db().await;
 
-    sqlx::query("INSERT INTO temp_table (x) VALUES (?)")
+    sqlx::query("INSERT INTO temp_table (x) VALUES (?);")
         .bind(7)
         .execute(&db)
         .await
@@ -101,7 +101,7 @@ pub async fn root(
 
     let mut data = RootData { ids_and_xs: Vec::new() };
 
-    let mut stream = sqlx::query("SELECT * FROM temp_table")
+    let mut stream = sqlx::query("SELECT * FROM temp_table;")
         .map(|row: SqliteRow| {
             // map the row into a user-defined domain type
             let id: i64 = row.try_get("id").unwrap();

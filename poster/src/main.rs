@@ -93,7 +93,7 @@ async fn main() {
     let auth_layer = AuthLayer::new(user_store, &secret);
 
 
-    create_database().await;
+    create_tables().await;
     // add_test_user().await;
 
 
@@ -170,14 +170,14 @@ async fn add_test_user() {
     user.add_to_db().await;    
 }
 
-async fn create_database() {
+async fn create_tables() {
     let db = sql::connect_to_db().await;
     // sqlx::query(
     //     r#"
     //     CREATE TABLE IF NOT EXISTS temp_table (
     //         id INTEGER PRIMARY KEY AUTOINCREMENT,
     //         x INTEGER NOT NULL
-    //     )
+    //     );
     //     "#,
     // )
     //     .execute(&db)
@@ -188,9 +188,4 @@ async fn create_database() {
         .execute(&db)
         .await
         .unwrap();
-
-    // sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeAccountsTable.sql")))
-    //     .execute(&db)
-    //     .await
-    //     .unwrap();
 }
