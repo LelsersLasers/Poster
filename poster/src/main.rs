@@ -13,7 +13,6 @@ use tower::layer::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
 
 
-
 use axum_login::{
     axum_sessions::{async_session::MemoryStore, SessionLayer},
     secrecy::SecretVec,
@@ -44,6 +43,8 @@ use sqlx::{
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hasher;
+
+use std::time::{SystemTime, UNIX_EPOCH};
 
 
 mod models;
@@ -163,6 +164,8 @@ async fn main() {
 
 
         .route("/create_post_page", get(views::simple_page))
+        .route("/create_post", post(views::create_post))
+        
 
         
         .layer(auth_layer)

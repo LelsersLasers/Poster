@@ -44,6 +44,13 @@ pub const SELECT_ACCOUNT_FROM_USER_ID_SQL: &str = r#"
         user_id = ?;
 "#;
 
+pub const ADD_POST_SQL: &str = r#"
+    INSERT INTO posts
+        (title, content, date, account_id)
+    VALUES (?, ?, ?, ?)
+"#;
+
+
 pub async fn connect_to_db() -> sqlx::Pool<sqlx::Sqlite> {
     sqlx::SqlitePool::connect(DB_PATH).await.unwrap()
 }

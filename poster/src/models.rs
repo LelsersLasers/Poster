@@ -143,8 +143,8 @@ impl Account {
 pub struct Post {
     pub id: u32,
     pub title: String,
-    pub context: Option<String>,
-    pub date: u64, // sec since epoch
+    pub content: String,
+    pub date: String, // sec since epoch as String
 
     pub account_id: u32, // 1 Account : many Post
 
@@ -153,10 +153,32 @@ pub struct Post {
 
     // pub score: u32, // upvotes - downvotes
 }
+impl Post {
+    pub fn new(title: String, content: String, date: String, account_id: u32) -> Self {
+        Self {
+            id: 0, // will be set by database
+            title,
+            content,
+            date,
+            account_id,
+        }
+    }
+    pub async fn add_to_db(&self) {
+        let db = sql::connect_to_db().await;
+        sqlx::query(sql::ADD_POST_SQL)
+            .bind(&self.title)
+            .bind(&self.content)
+            .bind(&self.date)
+            .bind(&self.account_id)
+            .execute(&db)
+            .await
+            .unwrap();
+    }
+}
 
 // pub struct Comment {
 //     pub id: u32,
-//     pub context: String,
+//     pub content: String,
 //     pub date: u64, // sec since epoch
 
 //     pub author: Account, // 1 Account : many Post

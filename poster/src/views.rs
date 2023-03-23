@@ -82,6 +82,32 @@ pub async fn signup_handler(
     }
 }
 
+
+
+#[derive(Deserialize)]
+pub struct CreatePostForm {
+    title: String,
+    content: String,
+}
+pub async fn create_post(
+    auth: AuthContext,
+    Form(signup_form): Form<CreatePostForm>,
+) -> impl IntoResponse {
+    if let Some(user) = auth.current_user {
+        let seconds_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let date = seconds_since_epoch.to_string();
+        let account = models::Account::from_user(&user).await;
+        let post = models::Post::new(
+            signup_form.title,
+            signup_form.content,
+            date,
+            account.id,
+        );
+        post.add_to_db().await;
+    }
+    Redirect::to(BASE_PATH)
+}
+
 // pub async fn login(
 //     engine: AppEngine,
 //     Key(key): Key,
