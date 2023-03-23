@@ -106,8 +106,8 @@ async fn main() {
         ).unwrap();
     source
         .add_template(
-            TEMPLATE_PATH.to_string() +  "base_user.html",
-            utils::read_file(&(TEMPLATE_PATH.to_string() + "base_user.html"))
+            TEMPLATE_PATH.to_string() +  "base_form.html",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "base_form.html"))
         ).unwrap();
 
     source
