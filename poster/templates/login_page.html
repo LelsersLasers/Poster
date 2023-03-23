@@ -1,10 +1,10 @@
-{% extends "templates/userBase.html" %}
+{% extends "templates/base_user.html" %}
 
 {% block title %}Poster: Log In{% endblock %}
 
 
 {% block mainForm %}
-    <form action="{{ basePath ~ 'login_handler'}}" method="post" class="form-signin">
+    <form action="{{ basePath ~ 'login_user'}}" method="post" class="form-signin">
 
         <a href="{{ basePath }}">
             <img class="mb-2 rounded-lg" src="{{ logoImgString }}" alt="" width="72" height="72" />
@@ -17,7 +17,7 @@
 
   		  <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
 
-  		  <a href="{{ basePath ~ 'signup'}}">
+  		  <a href="{{ basePath ~ 'signup_page'}}">
             <button type="button" class="btn btn-light btn-sm mt-1">Don't have an account? (Sign Up)</button>
         </a>
 

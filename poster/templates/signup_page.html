@@ -1,4 +1,4 @@
-{% extends "templates/userBase.html" %}
+{% extends "templates/base_user.html" %}
 
 {% block title %}Poster: Sign Up{% endblock %}
 
@@ -19,7 +19,7 @@
 
   		  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
 
-  		  <a href="{{ basePath ~ 'login'}}">
+  		  <a href="{{ basePath ~ 'login_page'}}">
             <button type="button" class="btn btn-light btn-sm mt-1">Already have an account? (Log In)</button>
         </a>
 

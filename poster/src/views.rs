@@ -1,7 +1,7 @@
 use crate::*;
 
 
-pub async fn logout_handler(mut auth: AuthContext) -> impl IntoResponse {
+pub async fn logout(mut auth: AuthContext) -> impl IntoResponse {
     dbg!("Logging out user: {}", &auth.current_user);
     auth.logout().await;
 
@@ -26,7 +26,7 @@ pub struct LoginForm {
     username: String,
     password: String,
 }
-pub async fn login_handler(
+pub async fn login_user(
     mut auth: AuthContext,
     Form(login_form): Form<LoginForm>,
 ) -> impl IntoResponse {
@@ -37,7 +37,7 @@ pub async fn login_handler(
     if login_result {
         Redirect::to(&(BASE_PATH.to_string() + "/protected"))
     } else {
-        Redirect::to(&(BASE_PATH.to_string() + "/login"))
+        Redirect::to(&(BASE_PATH.to_string() + "/login_page"))
     }
 }
 
@@ -54,17 +54,17 @@ pub async fn signup_handler(
 ) -> impl IntoResponse {
 
     if signup_form.password1 != signup_form.password2 {
-        return Redirect::to(&(BASE_PATH.to_string() + "/signup"));
+        return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
     let unique_username = !models::User::username_exists(&signup_form.username).await;
     if !unique_username {
-        return Redirect::to(&(BASE_PATH.to_string() + "/signup"));
+        return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
     let unique_display_name = !models::Account::display_name_exists(&signup_form.display_name).await;
     if !unique_display_name {
-        return Redirect::to(&(BASE_PATH.to_string() + "/signup"));
+        return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
     let user = models::User::new(signup_form.username, signup_form.password1);
@@ -78,7 +78,7 @@ pub async fn signup_handler(
     if login_result {
         Redirect::to(&(BASE_PATH.to_string() + "/protected"))
     } else {
-        Redirect::to(&(BASE_PATH.to_string() + "/signup"))
+        Redirect::to(&(BASE_PATH.to_string() + "/signup_page"))
     }
 }
 

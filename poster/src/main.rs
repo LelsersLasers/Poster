@@ -106,8 +106,8 @@ async fn main() {
         ).unwrap();
     source
         .add_template(
-            TEMPLATE_PATH.to_string() +  "userBase.html",
-            utils::read_file(&(TEMPLATE_PATH.to_string() + "userBase.html"))
+            TEMPLATE_PATH.to_string() +  "base_user.html",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "base_user.html"))
         ).unwrap();
 
     source
@@ -117,13 +117,13 @@ async fn main() {
         ).unwrap();
     source
         .add_template(
-            BASE_PATH.to_string() + "/login",
-            utils::read_file(&(TEMPLATE_PATH.to_string() + "login.html"))
+            BASE_PATH.to_string() + "/login_page",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "login_page.html"))
         ).unwrap();
     source
         .add_template(
-            BASE_PATH.to_string() + "/signup",
-            utils::read_file(&(TEMPLATE_PATH.to_string() + "signup.html"))
+            BASE_PATH.to_string() + "/signup_page",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "signup_page.html"))
         ).unwrap();
     env.set_source(source);
 
@@ -148,14 +148,14 @@ async fn main() {
         
         // .route("/login", get(views::login))
         // .route("/signup", get(views::signup))
-        .route("/login", get(views::simple_page))
-        .route("/signup", get(views::simple_page))
+        .route("/login_page", get(views::simple_page))
+        .route("/signup_page", get(views::simple_page))
 
-        .route("/login_handler", post(views::login_handler))
+        .route("/login_user", post(views::login_user))
         .route("/signup_handler", post(views::signup_handler))
 
 
-        .route("/logout", get(views::logout_handler))
+        .route("/logout", get(views::logout))
 
         
         .layer(auth_layer)
