@@ -4,6 +4,12 @@ Simple reddit-esque social media like website (hopefully)
 
 ## NOTES
 
+### TODO
+
+- Redirect "/" to "/poster"
+- Permission redirecting
+- Everything else
+
 ### Stuff
 
 - DB

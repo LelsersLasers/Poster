@@ -113,7 +113,7 @@ async fn main() {
     source
         .add_template(
             BASE_PATH.to_string() + "/",
-            utils::read_file(&(TEMPLATE_PATH.to_string() + "welcome.html"))
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "index_page.html"))
         ).unwrap();
     source
         .add_template(
