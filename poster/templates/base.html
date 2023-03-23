@@ -39,7 +39,7 @@
 
 
 
-<body>
+<body class="bg-white">
     {% block navbar %}
         <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
             <a class="navbar-brand" href="{{ basePath }}">Poster</a>
@@ -53,11 +53,11 @@
                     {% if not logged_in %}
                         <li class="nav-item">
                             <a href="{{ basePath ~ 'login'}}">
-                                <button class="btn btn-outline-dark m-1 ml-sm-0 mr-sm-2" type="submit">Login</button>
+                                <button class="btn btn-outline-dark m-1 ml-sm-0 mr-sm-2" type="submit">Log In</button>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <button class="btn btn-warning m-1 ml-sm-0 mr-sm-2" type="submit">Sign-up</button>
+                            <button class="btn btn-warning m-1 ml-sm-0 mr-sm-2" type="submit">Sign Up</button>
                         </li>
                     {% else %}
                         <li class="nav-item">
