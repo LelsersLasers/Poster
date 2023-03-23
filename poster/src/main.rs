@@ -141,15 +141,12 @@ async fn main() {
     // build our application with a route
     let routes = Router::new()
 
-        .route("/protected", get(views::protected_handler))
-
         // affects every route above it
         // .route_layer(RequireAuthorizationLayer::<models::User>::login())
 
         // .route("/protected", get(|| async { Redirect::to(BASE_PATH) }))
 
         .route("/", get(views::root))
-        .route("/joe", get(views::joe))
 
         
         // .route("/login", get(views::login))
@@ -194,18 +191,6 @@ async fn main() {
 
 async fn create_tables() {
     let db = sql::connect_to_db().await;
-    // sqlx::query(
-    //     r#"
-    //     CREATE TABLE IF NOT EXISTS temp_table (
-    //         id INTEGER PRIMARY KEY AUTOINCREMENT,
-    //         x INTEGER NOT NULL
-    //     );
-    //     "#,
-    // )
-    //     .execute(&db)
-    //     .await
-    //     .unwrap();
-
     sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeTables.sql")))
         .execute(&db)
         .await

@@ -81,7 +81,7 @@ impl AuthUser for User {
 }
 
 
-
+#[derive(Serialize)]
 pub struct Account {
     pub id: u32,
     pub display_name: String,
@@ -124,7 +124,6 @@ impl Account {
     }
     pub async fn from_user(user: &User) -> Account {
         let db = sql::connect_to_db().await;
-        
         sqlx::query(sql::SELECT_ACCOUNT_FROM_USER_ID_SQL)
             .bind(&user.id)
             .map(|row: SqliteRow| {
@@ -138,8 +137,25 @@ impl Account {
             .await
             .unwrap()
     }
+    pub async fn from_id(id: u32) -> Account {
+        let db = sql::connect_to_db().await;
+        sqlx::query(sql::SELECT_ACCOUNT_FROM_ID_SQL)
+            .bind(id)
+            .map(|row: SqliteRow| {
+                Account {
+                    id: row.try_get("id").unwrap(),
+                    display_name: row.try_get("display_name").unwrap(),
+                    user_id: row.try_get("user_id").unwrap(),
+                }
+            })
+            .fetch_one(&db)
+            .await
+            .unwrap()
+    }
 }
 
+
+#[derive(Serialize)]
 pub struct Post {
     pub id: u32,
     pub title: String,

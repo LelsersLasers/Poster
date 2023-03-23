@@ -35,7 +35,7 @@ pub async fn login_user(
 
     let login_result = attempt_login(&mut auth, &user).await; 
     if login_result {
-        Redirect::to(&(BASE_PATH.to_string() + "/protected"))
+        Redirect::to(BASE_PATH)
     } else {
         Redirect::to(&(BASE_PATH.to_string() + "/login_page"))
     }
@@ -76,7 +76,7 @@ pub async fn signup_handler(
 
     let login_result = attempt_login(&mut auth, &user).await; 
     if login_result {
-        Redirect::to(&(BASE_PATH.to_string() + "/protected"))
+        Redirect::to(BASE_PATH)
     } else {
         Redirect::to(&(BASE_PATH.to_string() + "/signup_page"))
     }
@@ -108,52 +108,12 @@ pub async fn create_post(
     Redirect::to(BASE_PATH)
 }
 
-// pub async fn login(
-//     engine: AppEngine,
-//     Key(key): Key,
-// ) -> impl IntoResponse {
-//     RenderHtml(key, engine, ())
-// }
-// pub async fn signup(
-//     engine: AppEngine,
-//     Key(key): Key,
-// ) -> impl IntoResponse {
-//     RenderHtml(key, engine, ())
-// }
 
 pub async fn simple_page(
     engine: AppEngine,
     Key(key): Key,
 ) -> impl IntoResponse {
     RenderHtml(key, engine, ())
-}
-
-
-pub async fn protected_handler(
-    // Extension(user): Extension<models::User>
-    auth: AuthContext
-) -> impl IntoResponse {
-    if let Some(user) = auth.current_user {
-        let account = models::Account::from_user(&user).await;
-        format!("Logged in as: {}", account.display_name).into_response()
-    } else {
-        Redirect::to(BASE_PATH).into_response()
-    }
-}
-
-pub async fn joe() -> &'static str {
-    // State(pool): State<SqlitePool>
-    println!("GET /joe");
-
-    let db = sql::connect_to_db().await;
-
-    sqlx::query("INSERT INTO temp_table (x) VALUES (?);")
-        .bind(7)
-        .execute(&db)
-        .await
-        .unwrap();
-
-    "Joe"
 }
 
 pub async fn root(
@@ -165,42 +125,47 @@ pub async fn root(
     println!("GET /");
     println!("key: {:?}", key);
 
-    #[derive(Debug, Serialize)]
+    #[derive(Serialize)]
     pub struct RootData {
-        // ids_and_xs: Vec<(i64, i64)>,
-        // xs: Vec<i64>
-        ids_and_xs: Vec<IdAndX>,
+        post_datas: Vec<PostData>,
         logged_in: bool,
     }
-
-
-    #[derive(Debug, Serialize)]
-    pub struct IdAndX {
-        id: i64,
-        x: i64,
+    #[derive(Serialize)]
+    pub struct PostData {
+        post: models::Post,
+        account: models::Account,
     }
+
+
     let db = sql::connect_to_db().await;
 
     let mut data = RootData {
-        ids_and_xs: Vec::new(),
-        logged_in: auth.current_user.is_some() 
+        post_datas: vec![],
+        logged_in: auth.current_user.is_some(),
     };
 
-    let mut stream = sqlx::query("SELECT * FROM temp_table;")
+    let mut stream = sqlx::query(sql::GET_ALL_POSTS_SQL)
         .map(|row: SqliteRow| {
-            // map the row into a user-defined domain type
-            let id: i64 = row.try_get("id").unwrap();
-            let x: i64 = row.try_get("x").unwrap();
+            let id: u32 = row.get(0);
+            let title: String = row.get(1);
+            let content: String = row.get(2);
+            let date: String = row.get(3);
+            let account_id: u32 = row.get(4);
 
-            IdAndX { id, x }
+            models::Post {
+                id,
+                title,
+                content,
+                date,
+                account_id,
+            }
         })
         .fetch(&db);
 
     while let Some(row) = stream.next().await {
-        // let row = row.unwrap();
-        data.ids_and_xs.push(row.unwrap());
-        // data.ids.push(row.0);
-        // data.xs.push(row.1);
+        let post = row.unwrap();
+        let account = models::Account::from_id(post.account_id).await;
+        data.post_datas.push(PostData { post, account });
     }
 
 

@@ -30,6 +30,10 @@
 							<button class="btn btn-outline-info m-1" type="submit">Logout</button>
 						</a>
 					</li>
+					<li class="nav-item">
+						<a href="{{ basePath ~ 'create_post_page'}}">
+							<button class="btn btn-success m-1" type="submit">Create Post</button>
+						</a>
 				{% endif %}
 			</ul>
 
@@ -53,10 +57,16 @@
       </div>
   </div>
   -->
-          <h1>Hi there</h1>
-          <ul>
-            {% for id_and_x in ids_and_xs %}
-              <li>{{ id_and_x.id }}: {{ id_and_x.x }}</li>
-            {% endfor %}
-          </ul>
+	<h1>Hi there</h1>
+
+  	{% for post_data in post_datas %}
+  		<div class="card">
+  			<div class="card-body">
+  				<h5 class="card-title">{{ post_data.post.title }}</h5>
+  				<h6 class="card-subtitle mb-2 text-muted">{{ post_data.account.display_name }}</h6>
+  				<p class="card-text">{{ post_data.post.content }}</p>
+  				<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="card-link">View Post</a>
+  			</div>
+  		</div>
+  	{% endfor %}
 {% endblock %}

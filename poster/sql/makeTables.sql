@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE TABLE IF NOT EXISTS posts (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     title           TEXT    NOT NULL,
-    content         TEXT    NOT NULL,
+    content         TEXT    NOT NULL, -- but can be ""
     date            TEXT    NOT NULL, -- unix time, seconds as String
 
     -- Many posts : 1 account
