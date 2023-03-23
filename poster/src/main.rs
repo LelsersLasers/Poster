@@ -105,6 +105,11 @@ async fn main() {
             TEMPLATE_PATH.to_string() +  "base.html",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "base.html"))
         ).unwrap();
+    source
+        .add_template(
+            TEMPLATE_PATH.to_string() +  "userBase.html",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "userBase.html"))
+        ).unwrap();
 
     source
         .add_template(
@@ -115,6 +120,11 @@ async fn main() {
         .add_template(
             BASE_PATH.to_string() + "/login",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "login.html"))
+        ).unwrap();
+    source
+        .add_template(
+            BASE_PATH.to_string() + "/signup",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "signup.html"))
         ).unwrap();
     env.set_source(source);
 
@@ -137,7 +147,12 @@ async fn main() {
         .route("/joe", get(views::joe))
 
         
-        .route("/login", get(views::login))
+        // .route("/login", get(views::login))
+        // .route("/signup", get(views::signup))
+        .route("/login", get(views::simple_page))
+        .route("/signup", get(views::simple_page))
+
+        
         .route("/login_handler", post(views::login_handler))
         .route("/logout", get(views::logout_handler))
 

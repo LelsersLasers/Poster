@@ -1,0 +1,29 @@
+{% extends "templates/userBase.html" %}
+
+{% block title %}Poster: Sign Up{% endblock %}
+
+
+{% block mainForm %}
+    <form action="{{ basePath ~ 'signup_handler'}}" method="post" class="form-signin">
+
+        <a href="{{ basePath }}">
+            <img class="mb-2 rounded-lg" src="{{ logoImgString }}" alt="" width="72" height="72" />
+        </a>
+    
+  	    <h1 class="h3 mb-3 font-weight-normal">Sign Up</h1>
+
+  		  <input type="text" id="display_name" name="display_name" class="form-control top-input" placeholder="Display Name" required="" autofocus="">
+  		  <input type="text" id="username" name="username" class="form-control middle-input" placeholder="Username" required="">
+  		  <input type="password" id="password1" name="password1" class="form-control middle-input" placeholder="Password" required="">
+  		  <input type="password" id="password2" name="password2" class="form-control bottom-input" placeholder="Confirm Password" required="">
+
+  		  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
+
+  		  <a href="{{ basePath ~ 'login'}}">
+            <button type="button" class="btn btn-light btn-sm mt-1">Already have an account? (Log In)</button>
+        </a>
+
+        <!-- back button -->
+        {{ super() }}
+    </form>
+{% endblock %}

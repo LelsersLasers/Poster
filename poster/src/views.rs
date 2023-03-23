@@ -41,12 +41,26 @@ pub async fn login_handler(
     }
 }
 
-pub async fn login(
+// pub async fn login(
+//     engine: AppEngine,
+//     Key(key): Key,
+// ) -> impl IntoResponse {
+//     RenderHtml(key, engine, ())
+// }
+// pub async fn signup(
+//     engine: AppEngine,
+//     Key(key): Key,
+// ) -> impl IntoResponse {
+//     RenderHtml(key, engine, ())
+// }
+
+pub async fn simple_page(
     engine: AppEngine,
     Key(key): Key,
 ) -> impl IntoResponse {
     RenderHtml(key, engine, ())
 }
+
 
 pub async fn protected_handler(
     // Extension(user): Extension<models::User>
