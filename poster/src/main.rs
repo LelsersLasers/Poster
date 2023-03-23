@@ -94,7 +94,6 @@ async fn main() {
 
 
     create_tables().await;
-    // add_test_user().await;
 
 
 
@@ -152,8 +151,10 @@ async fn main() {
         .route("/login", get(views::simple_page))
         .route("/signup", get(views::simple_page))
 
-        
         .route("/login_handler", post(views::login_handler))
+        .route("/signup_handler", post(views::signup_handler))
+
+
         .route("/logout", get(views::logout_handler))
 
         
@@ -180,10 +181,6 @@ async fn main() {
 }
 
 
-async fn add_test_user() {
-    let user = models::User::new("username".to_string(), "password".to_string());
-    user.add_to_db().await;    
-}
 
 async fn create_tables() {
     let db = sql::connect_to_db().await;

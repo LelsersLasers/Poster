@@ -22,6 +22,28 @@ pub const ADD_USER_SQL: &str = r#"
     VALUES (?, ?);   
 "#;
 
+pub const FIND_ACCOUNT_DISPLAY_NAME_SQL: &str = r#"
+    SELECT
+        COUNT(display_name) AS found
+    FROM accounts
+    WHERE
+        display_name = ?;
+"#;
+
+pub const ADD_ACCOUNT_SQL: &str = r#"
+    INSERT INTO accounts 
+        (display_name, user_id)
+    VALUES (?, ?);
+"#;
+
+pub const SELECT_ACCOUNT_FROM_USER_ID_SQL: &str = r#"
+    SELECT
+        *
+    FROM accounts
+    WHERE
+        user_id = ?;
+"#;
+
 pub async fn connect_to_db() -> sqlx::Pool<sqlx::Sqlite> {
     sqlx::SqlitePool::connect(DB_PATH).await.unwrap()
 }

@@ -41,6 +41,47 @@ pub async fn login_handler(
     }
 }
 
+#[derive(Deserialize)]
+pub struct SignupForm {
+    display_name: String,
+    username: String,
+    password1: String,
+    password2: String,
+}
+pub async fn signup_handler(
+    mut auth: AuthContext,
+    Form(signup_form): Form<SignupForm>,
+) -> impl IntoResponse {
+
+    if signup_form.password1 != signup_form.password2 {
+        return Redirect::to(&(BASE_PATH.to_string() + "/signup"));
+    }
+
+    let unique_username = !models::User::username_exists(&signup_form.username).await;
+    if !unique_username {
+        return Redirect::to(&(BASE_PATH.to_string() + "/signup"));
+    }
+
+    let unique_display_name = !models::Account::display_name_exists(&signup_form.display_name).await;
+    if !unique_display_name {
+        return Redirect::to(&(BASE_PATH.to_string() + "/signup"));
+    }
+
+    let user = models::User::new(signup_form.username, signup_form.password1);
+    let account = models::Account::new(signup_form.display_name, user.id.clone());
+
+    user.add_to_db().await;
+    account.add_to_db().await;
+
+
+    let login_result = attempt_login(&mut auth, &user).await; 
+    if login_result {
+        Redirect::to(&(BASE_PATH.to_string() + "/protected"))
+    } else {
+        Redirect::to(&(BASE_PATH.to_string() + "/signup"))
+    }
+}
+
 // pub async fn login(
 //     engine: AppEngine,
 //     Key(key): Key,
@@ -67,7 +108,8 @@ pub async fn protected_handler(
     auth: AuthContext
 ) -> impl IntoResponse {
     if let Some(user) = auth.current_user {
-        format!("Logged in as: {}", user.id).into_response()
+        let account = models::Account::from_user(&user).await;
+        format!("Logged in as: {}", account.display_name).into_response()
     } else {
         Redirect::to(BASE_PATH).into_response()
     }
