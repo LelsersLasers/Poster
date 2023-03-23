@@ -140,19 +140,19 @@ impl Account {
     }
 }
 
-// pub struct Post {
-//     pub id: u32,
-//     pub title: String,
-//     pub context: String,
-//     pub date: u64, // sec since epoch
+pub struct Post {
+    pub id: u32,
+    pub title: String,
+    pub context: Option<String>,
+    pub date: u64, // sec since epoch
 
-//     pub author: Account, // 1 Account : many Post
-//     // many Post : many User
-//     pub upvotes: Vec<Account>,
-//     pub downvotes: Vec<Account>,
+    pub account_id: u32, // 1 Account : many Post
 
-//     pub score: u32, // upvotes - downvotes
-// }
+    // pub upvotes: Vec<Account>,
+    // pub downvotes: Vec<Account>,
+
+    // pub score: u32, // upvotes - downvotes
+}
 
 // pub struct Comment {
 //     pub id: u32,

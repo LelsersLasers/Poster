@@ -1,0 +1,39 @@
+{% extends "templates/base_user.html" %}
+
+{% block title %}Poster: Create Post{% endblock %}
+
+{% block style %}
+{{ super() }}
+<style>
+.form-signin {
+	width: 60vw;
+	max-width: unset;
+	min-width: 330px;
+}
+textarea {
+	height: 50vh !important;
+	resize: none;
+}
+</style>
+{% endblock %}
+
+{% block mainForm %}
+    <form action="{{ basePath ~ 'create_post'}}" method="post" class="form-signin">
+
+        <a href="{{ basePath }}">
+            <img class="mb-2 rounded-lg" src="{{ logoImgString }}" alt="" width="72" height="72" />
+        </a>
+
+  	    <h1 class="h3 mb-3 font-weight-normal">Create Post</h1>
+
+  		  <input type="text" id="title" name="title" class="font-weight-bold form-control top-input fat-input" placeholder="Title" required="" maxlength="200" autofocus="">
+  		  <textarea type="content" id="content" name="password" class="form-control bottom-input fat-input" placeholder="Content (optional)"></textarea>
+
+  		  <button class="btn btn-lg btn-primary" type="submit">Post</button>
+
+				<br />
+
+        <!-- back button -->
+        {{ super() }}
+    </form>
+{% endblock %}

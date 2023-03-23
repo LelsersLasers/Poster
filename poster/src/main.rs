@@ -125,6 +125,11 @@ async fn main() {
             BASE_PATH.to_string() + "/signup_page",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "signup_page.html"))
         ).unwrap();
+    source
+        .add_template(
+            BASE_PATH.to_string() + "/create_post_page",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "create_post_page.html"))
+        ).unwrap();
     env.set_source(source);
 
     let engine = Engine::from(env);
@@ -154,8 +159,10 @@ async fn main() {
         .route("/login_user", post(views::login_user))
         .route("/signup_handler", post(views::signup_handler))
 
-
         .route("/logout", get(views::logout))
+
+
+        .route("/create_post_page", get(views::simple_page))
 
         
         .layer(auth_layer)

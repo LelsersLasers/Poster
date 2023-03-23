@@ -13,3 +13,16 @@ CREATE TABLE IF NOT EXISTS accounts (
     FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE
 );
+
+
+CREATE TABLE IF NOT EXISTS posts (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    title           TEXT    NOT NULL,
+    context         TEXT,
+    date            INTEGER NOT NULL, -- unix time, seconds
+
+    -- Many posts : 1 account
+    account_id         INTEGER    NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts(id)
+        ON DELETE CASCADE
+);
