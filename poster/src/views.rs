@@ -94,15 +94,22 @@ pub async fn create_post(
     Form(signup_form): Form<CreatePostForm>,
 ) -> impl IntoResponse {
     if let Some(user) = auth.current_user {
-        let seconds_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
-        let date = seconds_since_epoch.to_string();
+
+        let title = signup_form.title.trim().to_string();
+        let content = signup_form.content.trim().to_string();
+
+        // padding the date with 0s to make it sortable
+        let date = utils::current_time_as_padded_string();
+
         let account = models::Account::from_user(&user).await;
+        
         let post = models::Post::new(
-            signup_form.title,
-            signup_form.content,
+            title,
+            content,
             date,
             account.id,
         );
+        
         post.add_to_db().await;
     }
     Redirect::to(BASE_PATH)
@@ -148,7 +155,15 @@ pub async fn root(
         .map(|row: SqliteRow| {
             let id: u32 = row.get(0);
             let title: String = row.get(1);
-            let content: String = row.get(2);
+
+            let full_content: String = row.get(2);
+            let content_str = &full_content[0..full_content.len().min(500)];
+            let content = if full_content.len() > 500 {
+                content_str.to_string() + "..."
+            } else {
+                content_str.to_string()
+            };
+            
             let date: String = row.get(3);
             let account_id: u32 = row.get(4);
 
