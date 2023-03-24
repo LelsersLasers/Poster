@@ -1,72 +1,37 @@
-{% extends "templates/base.html" %}
+{% extends "templates/base_navbar.html" %}
 
 
-{% block navbar %}
-	<nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
-		<a class="navbar-brand" href="{{ basePath }}">
-			<img class="rounded-sm" src="{{ logoImgString }}" alt="" width="36" height="36" />
-		</a>
-
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-
-		<div class="collapse navbar-collapse" id="navbarSupportedContent">
-			<ul class="navbar-nav mr-auto">
-				{% if not logged_in %}
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'login_page'}}">
-							<button class="btn btn-outline-dark m-1 ml-sm-0 mr-sm-2" type="submit">Log In</button>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'signup_page'}}">
-							<button class="btn btn-warning m-1 ml-sm-0 mr-sm-2" type="submit">Sign Up</button>
-						</a>
-					</li>
-				{% else %}
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'logout'}}">
-							<button class="btn btn-outline-info m-1" type="submit">Logout</button>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'create_post_page'}}">
-							<button class="btn btn-success m-1" type="submit">Create Post</button>
-						</a>
-				{% endif %}
-			</ul>
-
-			<form class="form-inline my-1 ml-md-1">
-				<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-				<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-			</form>
-		</div>
-	</nav>
-	
-	<br />
-    <br />
-    <br />
+{% block style %}
+{{ super() }}
+<style>
+.full-width {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+</style>
 {% endblock %}
 
 
 {% block body %}
-  <!--
-  <div class="row justify-content-center">
-      <div id="contentContainer" class="jumbotron col-12 col-md-8">
-      </div>
-  </div>
-  -->
-	<h1>Hi there</h1>
-
-  	{% for post_data in post_datas %}
-  		<div class="card">
-  			<div class="card-body">
-  				<h5 class="card-title">{{ post_data.post.title }}</h5>
-  				<h6 class="card-subtitle mb-2 text-muted">{{ post_data.account.display_name }}</h6>
-  				<p class="card-text">{{ post_data.post.content }}</p>
-  				<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="card-link">View Post</a>
-  			</div>
-  		</div>
-  	{% endfor %}
+  
+	<div class="row justify-content-center full-width">
+    	<div id="contentContainer" class="col-12 col-sm-11 col-md-8 col-lg-6 col-xl-5">
+			{% for post_data in post_datas %}
+				<div class="card box-shadow m-4">
+					<h5 class="card-header">{{ post_data.post.title }}</h5>
+					<div class="card-body">
+						<h5 class="card-title">{{ post_data.account.display_name }}</h5>
+						<p class="card-text">{{ post_data.post.content }}</p>
+						<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="btn btn-sm btn-primary">View Post</a>
+					</div>
+				</div>
+			{% endfor %}
+    	</div>
+		<!-- <div id="contentContainer" class="col-0 col-sm-0 col-md-2 col-lg-3 col-xl-3">
+			<div class="jumbotron mt-4">
+				HI
+			</div> -->
+		</div>
+	</div>
 {% endblock %}

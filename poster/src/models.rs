@@ -124,7 +124,7 @@ impl Account {
     }
     pub async fn from_user(user: &User) -> Account {
         let db = sql::connect_to_db().await;
-        sqlx::query(sql::SELECT_ACCOUNT_FROM_USER_ID_SQL)
+        sqlx::query(sql::GET_ACCOUNT_FROM_USER_ID_SQL)
             .bind(&user.id)
             .map(|row: SqliteRow| {
                 Account {
@@ -139,7 +139,7 @@ impl Account {
     }
     pub async fn from_id(id: u32) -> Account {
         let db = sql::connect_to_db().await;
-        sqlx::query(sql::SELECT_ACCOUNT_FROM_ID_SQL)
+        sqlx::query(sql::GET_ACCOUNT_FROM_ID_SQL)
             .bind(id)
             .map(|row: SqliteRow| {
                 Account {
@@ -189,6 +189,40 @@ impl Post {
             .execute(&db)
             .await
             .unwrap();
+    }
+    // pub async fn from_id(id: u32) -> Post {
+    //     let db = sql::connect_to_db().await;
+    //     sqlx::query(sql::GET_POST_FROM_ID_SQL)
+    //         .bind(id)
+    //         .map(|row: SqliteRow| {
+    //             Post {
+    //                 id: row.try_get("id").unwrap(),
+    //                 title: row.try_get("title").unwrap(),
+    //                 content: row.try_get("content").unwrap(),
+    //                 date: row.try_get("date").unwrap(),
+    //                 account_id: row.try_get("account_id").unwrap(),
+    //             }
+    //         })
+    //         .fetch_one(&db)
+    //         .await
+    //         .unwrap()
+    // }
+    pub async fn maybe_from_id(id: u32) -> Option<Post> {
+        let db = sql::connect_to_db().await;
+        sqlx::query(sql::GET_POST_FROM_ID_SQL)
+            .bind(id)
+            .map(|row: SqliteRow| {
+                Post {
+                    id: row.try_get("id").unwrap(),
+                    title: row.try_get("title").unwrap(),
+                    content: row.try_get("content").unwrap(),
+                    date: row.try_get("date").unwrap(),
+                    account_id: row.try_get("account_id").unwrap(),
+                }
+            })
+            .fetch_optional(&db)
+            .await
+            .unwrap()
     }
 }
 

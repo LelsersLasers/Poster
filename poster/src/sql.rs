@@ -36,7 +36,7 @@ pub const ADD_ACCOUNT_SQL: &str = r#"
     VALUES (?, ?)
 ;"#;
 
-pub const SELECT_ACCOUNT_FROM_USER_ID_SQL: &str = r#"
+pub const GET_ACCOUNT_FROM_USER_ID_SQL: &str = r#"
     SELECT
         *
     FROM accounts
@@ -44,7 +44,7 @@ pub const SELECT_ACCOUNT_FROM_USER_ID_SQL: &str = r#"
         user_id = ?
 ;"#;
 
-pub const SELECT_ACCOUNT_FROM_ID_SQL: &str = r#"
+pub const GET_ACCOUNT_FROM_ID_SQL: &str = r#"
     SELECT
         *
     FROM accounts
@@ -62,6 +62,14 @@ pub const GET_ALL_POSTS_SQL: &str = r#"
     SELECT
         *
     FROM posts
+;"#;
+
+pub const GET_POST_FROM_ID_SQL: &str = r#"
+    SELECT
+        *
+    FROM posts
+    WHERE
+        id = ?
 ;"#;
 
 

@@ -1,5 +1,5 @@
 use axum::{
-    // extract::State,
+    extract::Path,
     response::IntoResponse,
     routing::{get, post},
     // Extension,
@@ -110,6 +110,11 @@ async fn main() {
             TEMPLATE_PATH.to_string() +  "base_form.html",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "base_form.html"))
         ).unwrap();
+    source
+        .add_template(
+            TEMPLATE_PATH.to_string() +  "base_navbar.html",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "base_navbar.html"))
+        ).unwrap();
 
     source
         .add_template(
@@ -131,6 +136,11 @@ async fn main() {
             BASE_PATH.to_string() + "/create_post_page",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "create_post_page.html"))
         ).unwrap();
+    source
+        .add_template(
+            BASE_PATH.to_string() + "/post/:id",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "post_page.html"))
+        ).unwrap();
     env.set_source(source);
 
     let engine = Engine::from(env);
@@ -149,8 +159,6 @@ async fn main() {
         .route("/", get(views::root))
 
         
-        // .route("/login", get(views::login))
-        // .route("/signup", get(views::signup))
         .route("/login_page", get(views::simple_page))
         .route("/signup_page", get(views::simple_page))
 
@@ -164,6 +172,7 @@ async fn main() {
         .route("/create_post", post(views::create_post))
         
 
+        .route("/post/:id", get(views::post_page))
         
         .layer(auth_layer)
         .layer(session_layer)

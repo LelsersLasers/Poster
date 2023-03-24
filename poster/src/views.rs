@@ -120,8 +120,41 @@ pub async fn simple_page(
     engine: AppEngine,
     Key(key): Key,
 ) -> impl IntoResponse {
+    println!("KEY: {}", key);
     RenderHtml(key, engine, ())
 }
+
+
+pub async fn post_page(
+    auth: AuthContext,
+    engine: AppEngine,
+    Key(key): Key,
+    Path(post_id): Path<u32>,
+) -> impl IntoResponse {
+    
+    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    if let Some(post) = maybe_post {
+
+        #[derive(Serialize)]
+        pub struct PostPageData {
+            post: models::Post,
+            account: models::Account,
+            logged_in: bool,
+        }
+
+        let account = models::Account::from_id(post.account_id).await;
+        let data = PostPageData {
+            post,
+            account,
+            logged_in: auth.current_user.is_some(),
+        };
+        
+        RenderHtml(key, engine, data).into_response()
+    } else {
+        Redirect::to(BASE_PATH).into_response()
+    }
+}
+
 
 pub async fn root(
     // State(pool): State<SqlitePool>
