@@ -21,8 +21,9 @@
 				<div class="card box-shadow m-4">
 					<h5 class="card-header">{{ post_data.post.title }}</h5>
 					<div class="card-body">
-						<h5 class="card-title">{{ post_data.account.display_name }}</h5>
+						<h5 class="card-title text-muted">{{ post_data.account.display_name }}</h5>
 						<p class="card-text">{{ post_data.post.content }}</p>
+						<p class="card-text text-muted">{{ post_data.comment_count }} comments</p>
 						<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="btn btn-sm btn-primary">View Post</a>
 					</div>
 				</div>

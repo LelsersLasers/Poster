@@ -173,6 +173,8 @@ async fn main() {
         
 
         .route("/post/:id", get(views::post_page))
+
+        .route("/add_comment/:id", post(views::add_comment))
         
         .layer(auth_layer)
         .layer(session_layer)

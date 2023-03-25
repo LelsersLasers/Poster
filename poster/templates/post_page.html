@@ -1,5 +1,62 @@
 {% extends "templates/base_navbar.html" %}
 
+{% block style %}
+{{ super() }}
+<style>
+.full-width {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+</style>
+{% endblock %}
+
+
 {% block body %}
+
+<div class="row justify-content-center full-width">
+	<div id="contentContainer" class="col-12 col-md-10 col-lg-8">
+
+		<div class="jumbotron m-4 py-4">
+
+			<h5 class="display-4">{{ post.title }}</h5>
+			<p class="text-muted">{{ account.display_name }}</p>
+			<hr class="my-4">
+
+			<p class="lead">{{ post.content }}</p>
+			
+			{% if logged_in %}
+				<form action="{{ basePath ~ 'add_comment/' ~ post.id }}" method="post" class="">
+						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
+			
+						<textarea type="content" id="content" name="content" class="" placeholder="Comment"></textarea>
+			
+						<button class="btn btn-lg btn-primary type="submit">Comment</button>
+					</a>
+				</form>
+			{% else %}
+				<a class="btn btn-outline-primary btn-lg" href="{{ basePath ~ 'login_page' }}" role="button">Login to Comment</a>
+			{% endif %}
+
+			<br />
+			<button type="button" class="btn btn-secondary btn-sm mt-1" onclick="history.back()">
+                Back
+            </button>
+
+		</div>
+
+
+		{% for comment_data in comment_datas %}
+			<div class="card m-4">
+				<div class="card-body">
+					<h5 class="card-title">{{ comment_data.account.display_name }}</h5>
+					<p class="card-text">{{ comment_data.comment.content }}</p>
+				</div>
+			</div>
+		{% endfor %}
+
+
+	</div>
+</div>
 
 {% endblock %}

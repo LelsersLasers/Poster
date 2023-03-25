@@ -224,22 +224,93 @@ impl Post {
             .await
             .unwrap()
     }
+    pub async fn count_comments(&self) -> u32 {
+        let db = sql::connect_to_db().await;
+        sqlx::query(sql::COUNT_COMMENTS_ON_POST_SQL)
+            .bind(self.id)
+            .map(|row: SqliteRow| {
+                let count: u32 = row.try_get("count").unwrap();
+                count
+            })
+            .fetch_one(&db)
+            .await
+            .unwrap()
+    }
 }
 
-// pub struct Comment {
-//     pub id: u32,
-//     pub content: String,
-//     pub date: u64, // sec since epoch
+#[derive(Serialize)]
+pub struct Comment {
+    pub id: u32,
+    pub content: String,
+    pub date: String, // sec since epoch
 
-//     pub author: Account, // 1 Account : many Post
-//     // many Post : many User
-//     pub upvotes: Vec<Account>,
-//     pub downvotes: Vec<Account>,
+    pub account_id: u32,    // 1 Account : many Comment
+    pub post_id: u32,       // 1 Post : many Comment
+    pub parent_comment_id: Option<u32>, // 1 Comment : many Comment
 
-//     pub parent: Box<PostOrComment>,
 
-//     pub score: u32, // upvotes - downvotes
-// }
+    // many Post : many User
+    // pub upvotes: Vec<Account>,
+    // pub downvotes: Vec<Account>,
+
+    // pub parent: Box<PostOrComment>,
+
+    // pub score: u32, // upvotes - downvotes
+}
+impl Comment {
+    pub fn new(content: String, date: String, account_id: u32, post_id: u32, parent_comment_id: Option<u32>) -> Self {
+        Self {
+            id: 0, // will be set by database
+            content,
+            date,
+            account_id,
+            post_id,
+            parent_comment_id,
+        }
+    }
+    pub async fn top_level_comments_from_post_id(post_id: u32) -> Vec<Self> {
+        let db = sql::connect_to_db().await;
+        sqlx::query(sql::GET_TOP_LEVEL_COMMENTS_ON_POST_SQL)
+            .bind(post_id)
+            .map(|row: SqliteRow| {
+                Comment {
+                    id: row.try_get("id").unwrap(),
+                    content: row.try_get("content").unwrap(),
+                    date: row.try_get("date").unwrap(),
+                    account_id: row.try_get("account_id").unwrap(),
+                    post_id: row.try_get("post_id").unwrap(),
+                    // parent_comment_id: row.try_get("parent_comment_id").unwrap(),
+                    parent_comment_id: None,
+                }
+            })
+            .fetch_all(&db)
+            .await
+            .unwrap()
+    }
+    pub async fn add_to_db(&self) {
+        let db = sql::connect_to_db().await;
+        if let Some(parent_comment_id) = self.parent_comment_id {
+            sqlx::query(sql::ADD_COMMENT_TO_COMMENT_SQL)
+                .bind(&self.content)
+                .bind(&self.date)
+                .bind(&self.account_id)
+                .bind(&self.post_id)
+                .bind(&parent_comment_id)
+                .execute(&db)
+                .await
+                .unwrap();
+        } else {
+            sqlx::query(sql::ADD_COMMENT_TO_POST_SQL)
+                .bind(&self.content)
+                .bind(&self.date)
+                .bind(&self.account_id)
+                .bind(&self.post_id)
+                .execute(&db)
+                .await
+                .unwrap();
+        }
+    }
+}
 
 // pub enum PostOrComment {
 //     Post(Post),

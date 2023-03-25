@@ -43,6 +43,7 @@ Simple reddit-esque social media like website (hopefully)
     - Score (not null, integer)
         - Upvotes - Downvotes
 - Comment
+    - id (primary key, autoincrement, integer)
     - content (not null, text)
     - author (not null, integer - foreign key to account: 1 account to many comments)
     - date (not null, date format??)

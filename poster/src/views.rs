@@ -125,6 +125,38 @@ pub async fn simple_page(
 }
 
 
+#[derive(Deserialize)]
+pub struct AddCommentForm {
+    content: String,
+}
+pub async fn add_comment(
+    auth: AuthContext,
+    Path(post_id): Path<u32>,
+    Form(add_comment_form): Form<AddCommentForm>,
+) -> impl IntoResponse {
+    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    if maybe_post.is_none() {
+        return Redirect::to(BASE_PATH).into_response();
+    }
+
+    if let Some(user) = auth.current_user {
+        let account = models::Account::from_user(&user).await;
+
+        let content = add_comment_form.content.trim().to_string();
+        let date = utils::current_time_as_padded_string();
+        let comment = models::Comment::new(
+            content,
+            date,
+            account.id,
+            post_id,
+            Option::None,
+        );
+
+        comment.add_to_db().await;
+    }
+    Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response()
+}
+
 pub async fn post_page(
     auth: AuthContext,
     engine: AppEngine,
@@ -133,20 +165,37 @@ pub async fn post_page(
 ) -> impl IntoResponse {
     
     let maybe_post = models::Post::maybe_from_id(post_id).await;
-    if let Some(post) = maybe_post {
+    if let Some(mut post) = maybe_post {
 
         #[derive(Serialize)]
-        pub struct PostPageData {
+        struct PostPageData {
             post: models::Post,
             account: models::Account,
             logged_in: bool,
+            comment_datas: Vec<CommentData>,
+        }
+        #[derive(Serialize)]
+        struct CommentData {
+            comment: models::Comment,
+            account: models::Account,
         }
 
+        post.content = post.content.replace('\n', "<br />");
+
         let account = models::Account::from_id(post.account_id).await;
+        
+        let comments = models::Comment::top_level_comments_from_post_id(post.id).await;
+        let mut comment_datas: Vec<CommentData> = Vec::new();
+        for comment in comments {
+            let comment_account = models::Account::from_id(comment.account_id).await;
+            comment_datas.push(CommentData { comment, account: comment_account })
+        }
+
         let data = PostPageData {
             post,
             account,
             logged_in: auth.current_user.is_some(),
+            comment_datas,
         };
         
         RenderHtml(key, engine, data).into_response()
@@ -174,6 +223,7 @@ pub async fn root(
     pub struct PostData {
         post: models::Post,
         account: models::Account,
+        comment_count: u32,
     }
 
 
@@ -190,8 +240,14 @@ pub async fn root(
             let title: String = row.get(1);
 
             let full_content: String = row.get(2);
-            let content_str = &full_content[0..full_content.len().min(500)];
-            let content = if full_content.len() > 500 {
+
+
+            let first_four_lines = full_content.lines().take(4).collect::<Vec<&str>>().join("<br />");
+            let content_str = &first_four_lines[0..first_four_lines.len().min(500)];
+            
+
+
+            let content = if content_str.len() < full_content.len() {
                 content_str.to_string() + "..."
             } else {
                 content_str.to_string()
@@ -213,7 +269,8 @@ pub async fn root(
     while let Some(row) = stream.next().await {
         let post = row.unwrap();
         let account = models::Account::from_id(post.account_id).await;
-        data.post_datas.push(PostData { post, account });
+        let comment_count = post.count_comments().await;
+        data.post_datas.push(PostData { post, account, comment_count });
     }
 
 
