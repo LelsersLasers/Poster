@@ -185,7 +185,7 @@ impl Post {
             .bind(&self.title)
             .bind(&self.content)
             .bind(&self.date)
-            .bind(&self.account_id)
+            .bind(self.account_id)
             .execute(&db)
             .await
             .unwrap();
@@ -329,9 +329,9 @@ impl Comment {
             sqlx::query(sql::ADD_COMMENT_TO_COMMENT_SQL)
                 .bind(&self.content)
                 .bind(&self.date)
-                .bind(&self.account_id)
-                .bind(&self.post_id)
-                .bind(&parent_comment_id)
+                .bind(self.account_id)
+                .bind(self.post_id)
+                .bind(parent_comment_id)
                 .execute(&db)
                 .await
                 .unwrap();
@@ -339,8 +339,8 @@ impl Comment {
             sqlx::query(sql::ADD_COMMENT_TO_POST_SQL)
                 .bind(&self.content)
                 .bind(&self.date)
-                .bind(&self.account_id)
-                .bind(&self.post_id)
+                .bind(self.account_id)
+                .bind(self.post_id)
                 .execute(&db)
                 .await
                 .unwrap();

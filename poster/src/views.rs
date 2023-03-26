@@ -238,12 +238,9 @@ pub async fn root(
 
             let full_content: String = row.get(2);
 
-
             let first_four_lines = full_content.lines().take(4).collect::<Vec<&str>>().join("<br />");
             let content_str = &first_four_lines[0..first_four_lines.len().min(500)];
             
-
-
             let content = if content_str.len() < full_content.len() {
                 content_str.to_string() + "..."
             } else {
