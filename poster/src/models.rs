@@ -239,6 +239,13 @@ impl Post {
 }
 
 #[derive(Serialize)]
+pub struct CommentTreeNode {
+    pub comment: Comment,
+    pub account: Account,
+    pub children: Vec<CommentTreeNode>,
+}
+
+#[derive(Serialize)]
 pub struct Comment {
     pub id: u32,
     pub content: String,
@@ -286,6 +293,35 @@ impl Comment {
             .fetch_all(&db)
             .await
             .unwrap()
+    }
+    #[async_recursion]
+    pub async fn build_comment_tree(self) -> CommentTreeNode {
+        let mut children = Vec::new();
+        let db = sql::connect_to_db().await;
+        let child_comments = sqlx::query(sql::GET_COMMENTS_ON_COMMENT_SQL)
+            .bind(self.id)
+            .map(|row: SqliteRow| {
+                Comment {
+                    id: row.try_get("id").unwrap(),
+                    content: row.try_get("content").unwrap(),
+                    date: row.try_get("date").unwrap(),
+                    account_id: row.try_get("account_id").unwrap(),
+                    post_id: row.try_get("post_id").unwrap(),
+                    parent_comment_id: row.try_get("parent_comment_id").unwrap(),
+                }
+            })
+            .fetch_all(&db)
+            .await
+            .unwrap();
+        for child_comment in child_comments {
+            children.push(Comment::build_comment_tree(child_comment).await);
+        }
+        let account = Account::from_id(self.account_id).await;
+        CommentTreeNode {
+            comment: self,
+            account,
+            children,
+        }
     }
     pub async fn add_to_db(&self) {
         let db = sql::connect_to_db().await;

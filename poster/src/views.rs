@@ -172,12 +172,7 @@ pub async fn post_page(
             post: models::Post,
             account: models::Account,
             logged_in: bool,
-            comment_datas: Vec<CommentData>,
-        }
-        #[derive(Serialize)]
-        struct CommentData {
-            comment: models::Comment,
-            account: models::Account,
+            comment_tree_nodes: Vec<models::CommentTreeNode>,
         }
 
         post.content = post.content.replace('\n', "<br />");
@@ -185,17 +180,19 @@ pub async fn post_page(
         let account = models::Account::from_id(post.account_id).await;
         
         let comments = models::Comment::top_level_comments_from_post_id(post.id).await;
-        let mut comment_datas: Vec<CommentData> = Vec::new();
+        
+        
+        let mut comment_tree_nodes = Vec::new();
         for comment in comments {
-            let comment_account = models::Account::from_id(comment.account_id).await;
-            comment_datas.push(CommentData { comment, account: comment_account })
+            let comment_tree_node = models::Comment::build_comment_tree(comment).await;
+            comment_tree_nodes.push(comment_tree_node);
         }
 
         let data = PostPageData {
             post,
             account,
             logged_in: auth.current_user.is_some(),
-            comment_datas,
+            comment_tree_nodes,
         };
         
         RenderHtml(key, engine, data).into_response()

@@ -11,6 +11,20 @@
 </style>
 {% endblock %}
 
+{% macro renderCommentData(comment_tree_node) %}
+	<div class="card m-4">
+		<div class="card-body">
+			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
+			<p class="card-text">{{ comment_tree_node.comment.content }}</p>
+
+			
+		</div>
+		{% for child_comment_tree_node in comment_tree_node.children %}
+			{{ renderCommentData(child_comment_tree_node) }}
+		{% endfor %}
+	</div>
+{% endmacro %}
+
 
 {% block body %}
 
@@ -46,13 +60,8 @@
 		</div>
 
 
-		{% for comment_data in comment_datas %}
-			<div class="card m-4">
-				<div class="card-body">
-					<h5 class="card-title">{{ comment_data.account.display_name }}</h5>
-					<p class="card-text">{{ comment_data.comment.content }}</p>
-				</div>
-			</div>
+		{% for comment_tree_node in comment_tree_nodes %}
+			{{ renderCommentData(comment_tree_node) }}
 		{% endfor %}
 
 

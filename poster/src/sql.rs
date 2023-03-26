@@ -93,12 +93,12 @@ pub const ADD_COMMENT_TO_COMMENT_SQL: &str = r#"
 ;"#;
 
 pub const GET_COMMENTS_FROM_POST_SQL: &str = r#"
-    SELECT
-        *
-    FROM comments
-    WHERE
-        post_id = ?
-;"#;
+//     SELECT
+//         *
+//     FROM comments
+//     WHERE
+//         post_id = ?
+// ;"#;
 
 pub const GET_TOP_LEVEL_COMMENTS_ON_POST_SQL: &str = r#"
     SELECT
@@ -108,7 +108,7 @@ pub const GET_TOP_LEVEL_COMMENTS_ON_POST_SQL: &str = r#"
         post_id = ? AND parent_comment_id IS NULL
 ;"#;
 
-pub const GET_CHILD_COMMENTS_ON_COMMENT_SQL: &str = r#"
+pub const GET_COMMENTS_ON_COMMENT_SQL: &str = r#"
     SELECT
         *
     FROM comments
