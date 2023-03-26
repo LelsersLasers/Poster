@@ -1,3 +1,10 @@
+
+<!-- TODO: not have to redeclare? (already in templates/base.html) -->
+<!-- Temp fix: redeclare because ig the macro captures it before it is set -->
+{% set basePath = "http://localhost:3000/poster/" %}
+
+
+
 {% extends "templates/base_navbar.html" %}
 
 {% block style %}
@@ -17,7 +24,16 @@
 			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
 			<p class="card-text">{{ comment_tree_node.comment.content }}</p>
 
+			{% if logged_in %}
+				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
+						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
 			
+						<textarea type="content" id="content" name="content" class="" placeholder="Comment"></textarea>
+			
+						<button class="btn btn-lg btn-primary type="submit">Comment</button>
+					</a>
+				</form>
+			{% endif %}
 		</div>
 		{% for child_comment_tree_node in comment_tree_node.children %}
 			{{ renderCommentData(child_comment_tree_node) }}
@@ -40,7 +56,7 @@
 			<p class="lead">{{ post.content }}</p>
 			
 			{% if logged_in %}
-				<form action="{{ basePath ~ 'add_comment/' ~ post.id }}" method="post" class="">
+				<form action="{{ basePath ~ 'add_comment_to_post/' ~ post.id }}" method="post" class="">
 						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
 			
 						<textarea type="content" id="content" name="content" class="" placeholder="Comment"></textarea>

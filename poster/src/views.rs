@@ -129,7 +129,7 @@ pub async fn simple_page(
 pub struct AddCommentForm {
     content: String,
 }
-pub async fn add_comment(
+pub async fn add_comment_to_post(
     auth: AuthContext,
     Path(post_id): Path<u32>,
     Form(add_comment_form): Form<AddCommentForm>,
@@ -156,6 +156,39 @@ pub async fn add_comment(
     }
     Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response()
 }
+pub async fn add_comment_to_comment(
+    auth: AuthContext,
+    Path((post_id, comment_id)): Path<(u32, u32)>,
+    Form(add_comment_form): Form<AddCommentForm>,
+) -> impl IntoResponse {
+    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    if maybe_post.is_none() {
+        return Redirect::to(BASE_PATH).into_response();
+    }
+
+    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
+    if maybe_comment.is_none() {
+        return Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response();
+    }
+
+    if let Some(user) = auth.current_user {
+        let account = models::Account::from_user(&user).await;
+
+        let content = add_comment_form.content.trim().to_string();
+        let date = utils::current_time_as_padded_string();
+        let comment = models::Comment::new(
+            content,
+            date,
+            account.id,
+            post_id,
+            Option::Some(comment_id),
+        );
+
+        comment.add_to_db().await;
+    }
+    Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response()
+}
+
 
 pub async fn post_page(
     auth: AuthContext,

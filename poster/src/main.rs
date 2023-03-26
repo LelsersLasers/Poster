@@ -176,7 +176,8 @@ async fn main() {
 
         .route("/post/:id", get(views::post_page))
 
-        .route("/add_comment/:id", post(views::add_comment))
+        .route("/add_comment_to_post/:post_id", post(views::add_comment_to_post))
+        .route("/add_comment_to_comment/:post_id/:comment_id", post(views::add_comment_to_comment))
         
         .layer(auth_layer)
         .layer(session_layer)

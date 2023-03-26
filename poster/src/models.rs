@@ -323,6 +323,25 @@ impl Comment {
             children,
         }
     }
+    pub async fn maybe_from_id(id: u32, post_id: u32) -> Option<Self> {
+        let db = sql::connect_to_db().await;
+        sqlx::query(sql::GET_COMMENT_FROM_IDS_SQL)
+            .bind(id)
+            .bind(post_id)
+            .map(|row: SqliteRow| {
+                Comment {
+                    id: row.try_get("id").unwrap(),
+                    content: row.try_get("content").unwrap(),
+                    date: row.try_get("date").unwrap(),
+                    account_id: row.try_get("account_id").unwrap(),
+                    post_id: row.try_get("post_id").unwrap(),
+                    parent_comment_id: row.try_get("parent_comment_id").unwrap(),
+                }
+            })
+            .fetch_optional(&db)
+            .await
+            .unwrap()
+    }
     pub async fn add_to_db(&self) {
         let db = sql::connect_to_db().await;
         if let Some(parent_comment_id) = self.parent_comment_id {

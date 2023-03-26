@@ -72,6 +72,14 @@ pub const GET_POST_FROM_ID_SQL: &str = r#"
         id = ?
 ;"#;
 
+pub const GET_COMMENT_FROM_IDS_SQL: &str = r#"
+    SELECT
+        *
+    FROM comments
+    WHERE
+        id = ? AND post_id = ?
+;"#;
+
 pub const COUNT_COMMENTS_ON_POST_SQL: &str = r#"
     SELECT
         COUNT(id) AS count
@@ -92,7 +100,7 @@ pub const ADD_COMMENT_TO_COMMENT_SQL: &str = r#"
     VALUES (?, ?, ?, ?, ?)
 ;"#;
 
-pub const GET_COMMENTS_FROM_POST_SQL: &str = r#"
+// pub const GET_COMMENTS_FROM_POST_SQL: &str = r#"
 //     SELECT
 //         *
 //     FROM comments
