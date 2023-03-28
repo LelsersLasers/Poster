@@ -167,7 +167,7 @@ pub struct Post {
     // pub upvotes: Vec<Account>,
     // pub downvotes: Vec<Account>,
 
-    // pub score: u32, // upvotes - downvotes
+    pub score: i32, // upvotes - downvotes
 }
 impl Post {
     pub fn new(title: String, content: String, date: String, account_id: u32) -> Self {
@@ -176,6 +176,7 @@ impl Post {
             title,
             content,
             date,
+            score: 1,
             account_id,
         }
     }
@@ -185,6 +186,7 @@ impl Post {
             .bind(&self.title)
             .bind(&self.content)
             .bind(&self.date)
+            .bind(self.score)
             .bind(self.account_id)
             .execute(&db)
             .await
@@ -217,6 +219,7 @@ impl Post {
                     title: row.try_get("title").unwrap(),
                     content: row.try_get("content").unwrap(),
                     date: row.try_get("date").unwrap(),
+                    score: row.try_get("score").unwrap(),
                     account_id: row.try_get("account_id").unwrap(),
                 }
             })
@@ -262,7 +265,7 @@ pub struct Comment {
 
     // pub parent: Box<PostOrComment>,
 
-    // pub score: u32, // upvotes - downvotes
+    pub score: i32, // upvotes - downvotes
 }
 impl Comment {
     pub fn new(content: String, date: String, account_id: u32, post_id: u32, parent_comment_id: Option<u32>) -> Self {
@@ -270,6 +273,7 @@ impl Comment {
             id: 0, // will be set by database
             content,
             date,
+            score: 1,
             account_id,
             post_id,
             parent_comment_id,
@@ -284,6 +288,7 @@ impl Comment {
                     id: row.try_get("id").unwrap(),
                     content: row.try_get("content").unwrap(),
                     date: row.try_get("date").unwrap(),
+                    score: row.try_get("score").unwrap(),
                     account_id: row.try_get("account_id").unwrap(),
                     post_id: row.try_get("post_id").unwrap(),
                     // parent_comment_id: row.try_get("parent_comment_id").unwrap(),
@@ -305,6 +310,7 @@ impl Comment {
                     id: row.try_get("id").unwrap(),
                     content: row.try_get("content").unwrap(),
                     date: row.try_get("date").unwrap(),
+                    score: row.try_get("score").unwrap(),
                     account_id: row.try_get("account_id").unwrap(),
                     post_id: row.try_get("post_id").unwrap(),
                     parent_comment_id: row.try_get("parent_comment_id").unwrap(),
@@ -333,6 +339,7 @@ impl Comment {
                     id: row.try_get("id").unwrap(),
                     content: row.try_get("content").unwrap(),
                     date: row.try_get("date").unwrap(),
+                    score: row.try_get("score").unwrap(),
                     account_id: row.try_get("account_id").unwrap(),
                     post_id: row.try_get("post_id").unwrap(),
                     parent_comment_id: row.try_get("parent_comment_id").unwrap(),
@@ -348,6 +355,7 @@ impl Comment {
             sqlx::query(sql::ADD_COMMENT_TO_COMMENT_SQL)
                 .bind(&self.content)
                 .bind(&self.date)
+                .bind(self.score)
                 .bind(self.account_id)
                 .bind(self.post_id)
                 .bind(parent_comment_id)
@@ -358,6 +366,7 @@ impl Comment {
             sqlx::query(sql::ADD_COMMENT_TO_POST_SQL)
                 .bind(&self.content)
                 .bind(&self.date)
+                .bind(self.score)
                 .bind(self.account_id)
                 .bind(self.post_id)
                 .execute(&db)

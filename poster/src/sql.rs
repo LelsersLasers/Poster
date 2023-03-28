@@ -54,8 +54,8 @@ pub const GET_ACCOUNT_FROM_ID_SQL: &str = r#"
 
 pub const ADD_POST_SQL: &str = r#"
     INSERT INTO posts
-        (title, content, date, account_id)
-    VALUES (?, ?, ?, ?)
+        (title, content, date, score, account_id)
+    VALUES (?, ?, ?, ?, ?)
 ;"#;
 
 pub const GET_ALL_POSTS_SQL: &str = r#"
@@ -90,14 +90,14 @@ pub const COUNT_COMMENTS_ON_POST_SQL: &str = r#"
 
 pub const ADD_COMMENT_TO_POST_SQL: &str = r#"
     INSERT INTO comments
-        (content, date, account_id, post_id)
-    VALUES (?, ?, ?, ?)
+        (content, date, score, account_id, post_id)
+    VALUES (?, ?, ?, ?, ?)
 ;"#;
 
 pub const ADD_COMMENT_TO_COMMENT_SQL: &str = r#"
     INSERT INTO comments
-        (content, date, account_id, post_id, parent_comment_id)
-    VALUES (?, ?, ?, ?, ?)
+        (content, date, score, account_id, post_id, parent_comment_id)
+    VALUES (?, ?, ?, ?, ?, ?)
 ;"#;
 
 // pub const GET_COMMENTS_FROM_POST_SQL: &str = r#"

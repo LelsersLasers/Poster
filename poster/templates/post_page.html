@@ -23,6 +23,7 @@
 		<div class="card-body">
 			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
 			<p class="card-text">{{ comment_tree_node.comment.content }}</p>
+			<p class="card-text text-muted">{{ comment_tree_node.comment.score }} upvotes</p>
 
 			{% if logged_in %}
 				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">

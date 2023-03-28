@@ -281,13 +281,15 @@ pub async fn root(
             };
             
             let date: String = row.get(3);
-            let account_id: u32 = row.get(4);
+            let score: i32 = row.get(4);
+            let account_id: u32 = row.get(5);
 
             models::Post {
                 id,
                 title,
                 content,
                 date,
+                score,
                 account_id,
             }
         })

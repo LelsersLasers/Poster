@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS posts (
     title           TEXT    NOT NULL,
     content         TEXT    NOT NULL, -- but can be ""
     date            TEXT    NOT NULL, -- unix time, seconds as 0s padded String
+    score           INTEGER NOT NULL DEFAULT 1, -- upvotes - downvotes, account auto upvotes
 
     account_id         INTEGER    NOT NULL, -- Many posts : 1 account
 
@@ -30,11 +31,11 @@ CREATE TABLE IF NOT EXISTS posts (
         ON DELETE CASCADE
 );
 
-
 CREATE TABLE IF NOT EXISTS comments (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     content         TEXT    NOT NULL DEFAULT "", -- but can be ""
     date            TEXT    NOT NULL, -- unix time, seconds as 0s padded String
+    score           INTEGER NOT NULL DEFAULT 1, -- upvotes - downvotes, account auto upvotes
 
     account_id      INTEGER NOT NULL,   -- Many comments : 1 account
     post_id         INTEGER NOT NULL,   -- Many comments : 1 account
@@ -48,5 +49,34 @@ CREATE TABLE IF NOT EXISTS comments (
         ON DELETE CASCADE,
     
     FOREIGN KEY (parent_comment_id) REFERENCES comments(id)
+        ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS post_votes ( -- linking table for many to many relationship
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    vote            INTEGER NOT NULL, -- -1, 0, 1
+
+    account_id      INTEGER NOT NULL,
+    post_id         INTEGER NOT NULL,
+
+    FOREIGN KEY (account_id) REFERENCES accounts(id)
+        ON DELETE CASCADE,
+    
+    FOREIGN KEY (post_id) REFERENCES posts(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS comment_votes ( -- linking table for many to many relationship
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    vote            INTEGER NOT NULL, -- -1, 0, 1
+
+    account_id      INTEGER NOT NULL,
+    comment_id      INTEGER NOT NULL,
+
+    FOREIGN KEY (account_id) REFERENCES accounts(id)
+        ON DELETE CASCADE,
+    
+    FOREIGN KEY (comment_id) REFERENCES comments(id)
         ON DELETE CASCADE
 );
