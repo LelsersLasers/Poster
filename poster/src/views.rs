@@ -190,6 +190,45 @@ pub async fn add_comment_to_comment(
 }
 
 
+pub async fn upvote_post(
+    auth: AuthContext,
+    Path(post_id): Path<u32>,
+) -> impl IntoResponse {
+    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    if maybe_post.is_none() {
+        return "-1".into_response();
+    }
+    let post = maybe_post.unwrap();
+
+    if let Some(user) = auth.current_user {
+        let account = models::Account::from_user(&user).await;
+
+        let score = models::Post::vote(post_id, account.id, 1).await;
+        return score.to_string().into_response();
+    }
+    post.score.to_string().into_response()
+}
+pub async fn downvote_post(
+    auth: AuthContext,
+    Path(post_id): Path<u32>,
+) -> impl IntoResponse {
+    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    if maybe_post.is_none() {
+        return "-1".into_response();
+    }
+    let post = maybe_post.unwrap();
+
+    if let Some(user) = auth.current_user {
+        let account = models::Account::from_user(&user).await;
+
+        let score = models::Post::vote(post_id, account.id, -1).await;
+        return score.to_string().into_response();
+    }
+    post.score.to_string().into_response()
+}
+
+
+
 pub async fn post_page(
     auth: AuthContext,
     engine: AppEngine,

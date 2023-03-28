@@ -140,7 +140,7 @@ async fn main() {
         ).unwrap();
     source
         .add_template(
-            BASE_PATH.to_string() + "/post/:id",
+            BASE_PATH.to_string() + "/post/:post_id",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "post_page.html"))
         ).unwrap();
     env.set_source(source);
@@ -174,10 +174,14 @@ async fn main() {
         .route("/create_post", post(views::create_post))
         
 
-        .route("/post/:id", get(views::post_page))
+        .route("/post/:post_id", get(views::post_page))
 
         .route("/add_comment_to_post/:post_id", post(views::add_comment_to_post))
         .route("/add_comment_to_comment/:post_id/:comment_id", post(views::add_comment_to_comment))
+
+        .route("/upvote_post/:post_id", get(views::upvote_post))
+        .route("/downvote_post/:post_id", get(views::downvote_post))
+
         
         .layer(auth_layer)
         .layer(session_layer)

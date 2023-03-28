@@ -191,6 +191,22 @@ impl Post {
             .execute(&db)
             .await
             .unwrap();
+
+        // auto upvote
+        sqlx::query(sql::ADD_POST_VOTE_SQL)
+            .bind(self.id)
+            .bind(self.account_id)
+            .bind(1)
+            .execute(&db)
+            .await
+            .unwrap();
+
+        sqlx::query(sql::UPDATE_POST_SCORE_SQL)
+            .bind(1)
+            .bind(self.id)
+            .execute(&db)
+            .await
+            .unwrap();
     }
     // pub async fn from_id(id: u32) -> Post {
     //     let db = sql::connect_to_db().await;
@@ -238,6 +254,43 @@ impl Post {
             .fetch_one(&db)
             .await
             .unwrap()
+    }
+    pub async fn vote(id: u32, account_id: u32, vote_value: i32) -> i32 {
+        let db = sql::connect_to_db().await;
+
+        sqlx::query(sql::DELETE_POST_VOTE_SQL)
+            .bind(id)
+            .bind(account_id)
+            .execute(&db)
+            .await
+            .unwrap();
+
+        sqlx::query(sql::ADD_POST_VOTE_SQL)
+            .bind(id)
+            .bind(account_id)
+            .bind(vote_value)
+            .execute(&db)
+            .await
+            .unwrap();
+
+        let new_post_score = sqlx::query(sql::CALCULATE_POST_SCORE_SQL)
+            .bind(id)
+            .map(|row: SqliteRow| {
+                let score: i32 = row.try_get("score").unwrap();
+                score
+            })
+            .fetch_one(&db)
+            .await
+            .unwrap();
+
+        sqlx::query(sql::UPDATE_POST_SCORE_SQL)
+            .bind(new_post_score)
+            .bind(id)
+            .execute(&db)
+            .await
+            .unwrap();
+
+        new_post_score
     }
 }
 

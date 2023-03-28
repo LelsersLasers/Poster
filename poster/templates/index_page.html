@@ -12,6 +12,19 @@
 </style>
 {% endblock %}
 
+{% block js %}
+{{ super() }}
+<script>
+
+function upvotePost(postId) {
+
+}
+
+
+</script>
+{% endblock %}
+
+
 
 {% block body %}
   
@@ -20,13 +33,24 @@
 			{% for post_data in post_datas %}
 				<div class="card box-shadow m-4">
 					<h5 class="card-header">{{ post_data.post.title }}</h5>
+					<input type="hidden" name="upvote_path" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
+
 					<div class="card-body">
 						<h5 class="card-title text-muted">{{ post_data.account.display_name }}</h5>
 						<p class="card-text">{{ post_data.post.content }}</p>
 						<p class="card-text text-muted">{{ post_data.comment_count }} comments</p>
-						<p class="card-text text-muted">{{ post_data.post.score }} upvotes</p>
-						<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="btn btn-sm btn-primary">View Post</a>
+						<p id="score" class="card-text text-muted">{{ post_data.post.score }} upvotes</p>
+
+						<!-- TODO: JS functions to call backend and update id=score html -->
+
+
+						<button onclick="upvotePost();" class="btn btn-sm btn-secondary mb-2">Upvote</button>
+						<button href="{{ basePath ~ 'downvote_post/' ~ post_data.post.id }}" class="btn btn-sm btn-secondary mb-2">Downvote</button>
+						<br />
+
+						<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="btn btn-primary">View Post</a>
 					</div>
+
 				</div>
 			{% endfor %}
     	</div>
