@@ -17,9 +17,27 @@
 <script>
 
 function upvotePost(postId) {
-
+	const upvotePath = document.getElementsByName("upvote_path-" + postId)[0].value;
+	fetch(upvotePath)
+		.then(response => response.json())
+		.then(data => data['score'])
+		.then(score => {
+			const scoreElement = document.getElementById("score-" + postId);
+			scoreElement.innerHTML = score + " upvotes";
+		})
+		.catch(error => console.log(error));
 }
-
+function downvotePost(postId) {
+	const upvotePath = document.getElementsByName("downvote_path-" + postId)[0].value;
+	fetch(upvotePath)
+		.then(response => response.json())
+		.then(data => data['score'])
+		.then(score => {
+			const scoreElement = document.getElementById("score-" + postId);
+			scoreElement.innerHTML = score + " upvotes";
+		})
+		.catch(error => console.log(error));
+}
 
 </script>
 {% endblock %}
@@ -33,19 +51,19 @@ function upvotePost(postId) {
 			{% for post_data in post_datas %}
 				<div class="card box-shadow m-4">
 					<h5 class="card-header">{{ post_data.post.title }}</h5>
-					<input type="hidden" name="upvote_path" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
+					
+					<input type="hidden" name="upvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
+					<input type="hidden" name="downvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'downvote_post/' ~ post_data.post.id }}" readonly>
 
 					<div class="card-body">
 						<h5 class="card-title text-muted">{{ post_data.account.display_name }}</h5>
 						<p class="card-text">{{ post_data.post.content }}</p>
 						<p class="card-text text-muted">{{ post_data.comment_count }} comments</p>
-						<p id="score" class="card-text text-muted">{{ post_data.post.score }} upvotes</p>
+						<p id="score-{{ post_data.post.id }}" class="card-text text-muted">{{ post_data.post.score }} upvotes</p>
 
-						<!-- TODO: JS functions to call backend and update id=score html -->
-
-
-						<button onclick="upvotePost();" class="btn btn-sm btn-secondary mb-2">Upvote</button>
-						<button href="{{ basePath ~ 'downvote_post/' ~ post_data.post.id }}" class="btn btn-sm btn-secondary mb-2">Downvote</button>
+						<!-- NOTE: syntax errors are okay here, from templating -->
+						<button onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-secondary mb-2">Upvote</button>
+						<button onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-secondary mb-2">Downvote</button>
 						<br />
 
 						<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="btn btn-primary">View Post</a>

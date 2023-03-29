@@ -193,10 +193,10 @@ pub async fn add_comment_to_comment(
 pub async fn upvote_post(
     auth: AuthContext,
     Path(post_id): Path<u32>,
-) -> impl IntoResponse {
+) -> Json<Value> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
     if maybe_post.is_none() {
-        return "-1".into_response();
+        return Json(json!({"score": -1}));
     }
     let post = maybe_post.unwrap();
 
@@ -204,17 +204,17 @@ pub async fn upvote_post(
         let account = models::Account::from_user(&user).await;
 
         let score = models::Post::vote(post_id, account.id, 1).await;
-        return score.to_string().into_response();
+        return Json(json!({"score": score}));
     }
-    post.score.to_string().into_response()
+    Json(json!({"score": post.score}))
 }
 pub async fn downvote_post(
     auth: AuthContext,
     Path(post_id): Path<u32>,
-) -> impl IntoResponse {
+) -> Json<Value> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
     if maybe_post.is_none() {
-        return "-1".into_response();
+        return Json(json!({"score": -1}));
     }
     let post = maybe_post.unwrap();
 
@@ -222,9 +222,9 @@ pub async fn downvote_post(
         let account = models::Account::from_user(&user).await;
 
         let score = models::Post::vote(post_id, account.id, -1).await;
-        return score.to_string().into_response();
+        return Json(json!({"score": score}));
     }
-    post.score.to_string().into_response()
+    Json(json!({"score": post.score}))
 }
 
 
