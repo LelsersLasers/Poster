@@ -1,10 +1,3 @@
-
-<!-- TODO: not have to redeclare? (already in templates/base.html) -->
-<!-- Temp fix: redeclare because ig the macro captures it before it is set -->
-{% set basePath = "http://localhost:3000/poster/" %}
-
-
-
 {% extends "templates/base_navbar.html" %}
 
 {% block style %}
@@ -18,7 +11,7 @@
 </style>
 {% endblock %}
 
-{% macro renderCommentData(comment_tree_node) %}
+{% macro renderCommentData(comment_tree_node, basePath) %}
 	<div class="card m-4">
 		<div class="card-body">
 			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
@@ -37,7 +30,7 @@
 			{% endif %}
 		</div>
 		{% for child_comment_tree_node in comment_tree_node.children %}
-			{{ renderCommentData(child_comment_tree_node) }}
+			{{ renderCommentData(child_comment_tree_node, basePath) }}
 		{% endfor %}
 	</div>
 {% endmacro %}
@@ -78,7 +71,7 @@
 
 
 		{% for comment_tree_node in comment_tree_nodes %}
-			{{ renderCommentData(comment_tree_node) }}
+			{{ renderCommentData(comment_tree_node, basePath) }}
 		{% endfor %}
 
 
