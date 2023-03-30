@@ -13,21 +13,6 @@ impl User {
             password_hash: utils::hash_password(&password)
         }
     }
-    // pub async fn try_find(&self) -> Option<Self> {
-    //     let db = sql::connect_to_db().await;
-    //     let stream = sqlx::query("SELECT * FROM users WHERE id = ? AND password_hash = ?")
-    //         .bind(&self.id)
-    //         .bind(&self.password_hash)
-    //         .map(|row: SqliteRow| {
-    //             Self {
-    //                 id: row.try_get("id").unwrap(),
-    //                 password_hash: row.try_get("password_hash").unwrap()
-    //             }
-    //         })
-    //         .fetch_optional(&db);
-    
-    //     stream.await.unwrap()        
-    // }
     pub async fn exists(&self) -> bool {
         let db = sql::connect_to_db().await;
         let result = sqlx::query(sql::FIND_USER_SQL)
@@ -295,6 +280,19 @@ impl Post {
             .unwrap();
 
         new_post_score
+    }
+    pub async fn maybe_account_vote(&self, account_id: u32) -> Option<i32> {
+        let db = sql::connect_to_db().await;
+        sqlx::query(sql::GET_POST_VOTE_SQL)
+            .bind(self.id)
+            .bind(account_id)
+            .map(|row: SqliteRow| {
+                let vote_value: i32 = row.try_get("vote_value").unwrap();
+                vote_value
+            })
+            .fetch_optional(&db)
+            .await
+            .unwrap()
     }
 }
 

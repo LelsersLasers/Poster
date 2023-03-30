@@ -327,6 +327,7 @@ pub async fn root(
     pub struct PostData {
         post: models::Post,
         account: models::Account,
+        vote_value: i32,
         comment_count: u32,
     }
 
@@ -373,7 +374,19 @@ pub async fn root(
         let post = row.unwrap();
         let account = models::Account::from_id(post.account_id).await;
         let comment_count = post.count_comments().await;
-        data.post_datas.push(PostData { post, account, comment_count });
+        let vote_value = if data.logged_in {
+            let user = auth.current_user.as_ref().unwrap();
+            let account = models::Account::from_user(user).await;
+            let maybe_vote_value = post.maybe_account_vote(account.id).await;
+            if let Some(vote_value) = maybe_vote_value {
+                vote_value
+            } else {
+                0
+            }
+        } else {
+            -2 // not -1, 0, 1
+        };
+        data.post_datas.push(PostData { post, account, comment_count, vote_value });
     }
 
 

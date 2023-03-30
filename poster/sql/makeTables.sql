@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS posts (
     date            TEXT    NOT NULL, -- unix time, seconds as 0s padded String
     score           INTEGER NOT NULL DEFAULT 1, -- upvotes - downvotes, account auto upvotes
 
-    account_id         INTEGER    NOT NULL, -- Many posts : 1 account
+    account_id      INTEGER    NOT NULL, -- Many posts : 1 account
 
 
     FOREIGN KEY (account_id) REFERENCES accounts(id)
