@@ -124,18 +124,18 @@ pub const GET_COMMENTS_ON_COMMENT_SQL: &str = r#"
         parent_comment_id = ?
 ;"#;
 
+
+//----------------------------------------------------------------------------//
 pub const DELETE_POST_VOTE_SQL: &str = r#"
     DELETE FROM post_votes
     WHERE
         post_id = ? AND account_id = ?
 ;"#;
-
 pub const ADD_POST_VOTE_SQL: &str = r#"
     INSERT INTO post_votes
         (post_id, account_id, vote)
     VALUES (?, ?, ?)
 ;"#;
-
 pub const CALCULATE_POST_SCORE_SQL: &str = r#"
     SELECT
         SUM(vote) AS score
@@ -143,14 +143,36 @@ pub const CALCULATE_POST_SCORE_SQL: &str = r#"
     WHERE
         post_id = ?
 ;"#;
-
 pub const UPDATE_POST_SCORE_SQL: &str = r#"
     UPDATE posts
     SET score = ?
     WHERE
         id = ?
 ;"#;
-
+//----------------------------------------------------------------------------//
+pub const DELETE_COMMENT_VOTE_SQL: &str = r#"
+    DELETE FROM comment_votes
+    WHERE
+        comment_id = ? AND account_id = ?
+;"#;
+pub const ADD_COMMENT_VOTE_SQL: &str = r#"
+    INSERT INTO comment_votes
+        (comment_id, post_id, account_id, vote)
+    VALUES (?, ?, ?, ?)
+;"#;
+pub const CALCULATE_COMMENT_SCORE_SQL: &str = r#"
+    SELECT
+        SUM(vote) AS score
+    FROM comment_votes
+    WHERE
+        comment_id = ?
+;"#;
+pub const UPDATE_COMMENT_SCORE_SQL: &str = r#"
+    UPDATE comments
+    SET score = ?
+    WHERE
+        id = ?
+;"#;
 
 pub async fn connect_to_db() -> sqlx::Pool<sqlx::Sqlite> {
     sqlx::SqlitePool::connect(DB_PATH).await.unwrap()

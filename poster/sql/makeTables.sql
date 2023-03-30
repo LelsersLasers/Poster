@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS comments (
 
 
 CREATE TABLE IF NOT EXISTS post_votes ( -- linking table for many to many relationship
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
     vote            INTEGER NOT NULL, -- -1, 0, 1
 
     account_id      INTEGER NOT NULL,
@@ -65,18 +64,25 @@ CREATE TABLE IF NOT EXISTS post_votes ( -- linking table for many to many relati
     
     FOREIGN KEY (post_id) REFERENCES posts(id)
         ON DELETE CASCADE
+
+    PRIMARY KEY (account_id, post_id)
 );
 
 CREATE TABLE IF NOT EXISTS comment_votes ( -- linking table for many to many relationship
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
     vote            INTEGER NOT NULL, -- -1, 0, 1
 
     account_id      INTEGER NOT NULL,
     comment_id      INTEGER NOT NULL,
+    post_id         INTEGER NOT NULL,
 
     FOREIGN KEY (account_id) REFERENCES accounts(id)
         ON DELETE CASCADE,
     
     FOREIGN KEY (comment_id) REFERENCES comments(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (post_id) REFERENCES posts(id)
+        ON DELETE CASCADE,
+
+    PRIMARY KEY (account_id, comment_id)
 );

@@ -1,46 +1,5 @@
-{% extends "templates/base_navbar.html" %}
+{% extends "templates/base_vote.html" %}
 
-
-{% block style %}
-{{ super() }}
-<style>
-.full-width {
-	width: 100%;
-	margin: 0;
-	padding: 0;
-}
-</style>
-{% endblock %}
-
-{% block js %}
-{{ super() }}
-<script>
-
-function upvotePost(postId) {
-	const upvotePath = document.getElementsByName("upvote_path-" + postId)[0].value;
-	fetch(upvotePath)
-		.then(response => response.json())
-		.then(data => data['score'])
-		.then(score => {
-			const scoreElement = document.getElementById("score-" + postId);
-			scoreElement.innerHTML = score + " upvotes";
-		})
-		.catch(error => console.log(error));
-}
-function downvotePost(postId) {
-	const upvotePath = document.getElementsByName("downvote_path-" + postId)[0].value;
-	fetch(upvotePath)
-		.then(response => response.json())
-		.then(data => data['score'])
-		.then(score => {
-			const scoreElement = document.getElementById("score-" + postId);
-			scoreElement.innerHTML = score + " upvotes";
-		})
-		.catch(error => console.log(error));
-}
-
-</script>
-{% endblock %}
 
 
 

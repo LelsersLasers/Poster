@@ -10,8 +10,11 @@ Simple reddit-esque social media like website (hopefully)
 - Permission redirecting
 - On signup/login redirect to where they were before
 - Post/Comment score
-    - Post/Comment upvote/downvote
+    - CSS/clarity
+    - Upvote/downvote is a toggle 
 - Polish and CSS
+- CLEAN CODE?
+    - Or just move on to next project
 
 ### Models
 

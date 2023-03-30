@@ -119,6 +119,11 @@ async fn main() {
             TEMPLATE_PATH.to_string() +  "base_navbar.html",
             utils::read_file(&(TEMPLATE_PATH.to_string() + "base_navbar.html"))
         ).unwrap();
+    source
+        .add_template(
+            TEMPLATE_PATH.to_string() +  "base_vote.html",
+            utils::read_file(&(TEMPLATE_PATH.to_string() + "base_vote.html"))
+        ).unwrap();
 
     source
         .add_template(
@@ -178,12 +183,16 @@ async fn main() {
 
         .route("/post/:post_id", get(views::post_page))
 
+
         .route("/add_comment_to_post/:post_id", post(views::add_comment_to_post))
         .route("/add_comment_to_comment/:post_id/:comment_id", post(views::add_comment_to_comment))
+
 
         .route("/upvote_post/:post_id", get(views::upvote_post))
         .route("/downvote_post/:post_id", get(views::downvote_post))
 
+        .route("/upvote_comment/:post_id/:comment_id", get(views::upvote_comment))
+        .route("/downvote_comment/:post_id/:comment_id", get(views::downvote_comment))
         
         .layer(auth_layer)
         .layer(session_layer)

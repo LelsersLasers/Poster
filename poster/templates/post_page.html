@@ -1,22 +1,53 @@
-{% extends "templates/base_navbar.html" %}
+{% extends "templates/base_vote.html" %}
 
-{% block style %}
+
+{% block js %}
 {{ super() }}
-<style>
-.full-width {
-	width: 100%;
-	margin: 0;
-	padding: 0;
+<script>
+
+function upvoteComment(postId, commentId) {
+	const upvotePath = document.getElementsByName("upvote_path-comment-" + postId + "-" + commentId)[0].value;
+	fetch(upvotePath)
+		.then(response => response.json())
+		.then(data => data['score'])
+		.then(score => {
+			const scoreElement = document.getElementById("score-" + postId + "-" + commentId);
+			scoreElement.innerHTML = score + " upvotes";
+		})
+		.catch(error => console.log(error));
 }
-</style>
+function downvoteComment(postId, commentId) {
+	const upvotePath = document.getElementsByName("downvote_path-comment-" + postId + "-" + commentId)[0].value;
+	fetch(upvotePath)
+		.then(response => response.json())
+		.then(data => data['score'])
+		.then(score => {
+			const scoreElement = document.getElementById("score-" + postId + "-" + commentId);
+			scoreElement.innerHTML = score + " upvotes";
+		})
+		.catch(error => console.log(error));
+}
+
+</script>
 {% endblock %}
+
 
 {% macro renderCommentData(comment_tree_node, basePath) %}
 	<div class="card m-4">
 		<div class="card-body">
 			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
 			<p class="card-text">{{ comment_tree_node.comment.content }}</p>
-			<p class="card-text text-muted">{{ comment_tree_node.comment.score }} upvotes</p>
+
+			<p id="score-{{ post.id }}-{{ comment_tree_node.comment.id }}" class="card-text text-muted">{{ comment_tree_node.comment.score }} upvotes</p>
+
+
+			<input type="hidden" name="upvote_path-comment-{{ post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'upvote_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
+			<input type="hidden" name="downvote_path-comment-{{ post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'downvote_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
+
+			<!-- NOTE: syntax errors are okay here, from templating -->
+			<button onclick="upvoteComment({{ post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Upvote</button>
+			<button onclick="downvoteComment({{ post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Downvote</button>
+
 
 			{% if logged_in %}
 				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
@@ -47,8 +78,18 @@
 			<p class="text-muted">{{ account.display_name }}</p>
 			<hr class="my-4">
 
+			<input type="hidden" name="upvote_path-{{ post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post.id }}" readonly>
+			<input type="hidden" name="downvote_path-{{ post.id }}" value="{{ basePath ~ 'downvote_post/' ~ post.id }}" readonly>
+
 			<p class="lead">{{ post.content }}</p>
 			
+
+			<p id="score-{{ post.id }}" class="card-text text-muted">{{ post.score }} upvotes</p>
+			<!-- NOTE: syntax errors are okay here, from templating -->
+			<button onclick="upvotePost({{ post.id }});" class="btn btn-sm btn-secondary mb-2">Upvote</button>
+			<button onclick="downvotePost({{ post.id }});" class="btn btn-sm btn-secondary mb-2">Downvote</button>
+			<br />
+
 			{% if logged_in %}
 				<form action="{{ basePath ~ 'add_comment_to_post/' ~ post.id }}" method="post" class="">
 						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->

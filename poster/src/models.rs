@@ -402,6 +402,44 @@ impl Comment {
             .await
             .unwrap()
     }
+    pub async fn vote(id: u32, post_id: u32, account_id: u32, vote_value: i32) -> i32 {
+        let db = sql::connect_to_db().await;
+
+        sqlx::query(sql::DELETE_COMMENT_VOTE_SQL)
+            .bind(id)
+            .bind(account_id)
+            .execute(&db)
+            .await
+            .unwrap();
+
+        sqlx::query(sql::ADD_COMMENT_VOTE_SQL)
+            .bind(id)
+            .bind(post_id)
+            .bind(account_id)
+            .bind(vote_value)
+            .execute(&db)
+            .await
+            .unwrap();
+
+        let new_post_score = sqlx::query(sql::CALCULATE_COMMENT_SCORE_SQL)
+            .bind(id)
+            .map(|row: SqliteRow| {
+                let score: i32 = row.try_get("score").unwrap();
+                score
+            })
+            .fetch_one(&db)
+            .await
+            .unwrap();
+
+        sqlx::query(sql::UPDATE_COMMENT_SCORE_SQL)
+            .bind(new_post_score)
+            .bind(id)
+            .execute(&db)
+            .await
+            .unwrap();
+
+        new_post_score
+    }
     pub async fn add_to_db(&self) {
         let db = sql::connect_to_db().await;
         if let Some(parent_comment_id) = self.parent_comment_id {

@@ -120,7 +120,6 @@ pub async fn simple_page(
     engine: AppEngine,
     Key(key): Key,
 ) -> impl IntoResponse {
-    println!("KEY: {}", key);
     RenderHtml(key, engine, ())
 }
 
@@ -227,6 +226,45 @@ pub async fn downvote_post(
     Json(json!({"score": post.score}))
 }
 
+pub async fn upvote_comment(
+    auth: AuthContext,
+    Path((post_id, comment_id)): Path<(u32, u32)>,
+) -> Json<Value> {
+    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
+    if maybe_post.is_none() || maybe_comment.is_none() {
+        return Json(json!({"score": -1}));
+    }
+    let comment = maybe_comment.unwrap();
+
+    if let Some(user) = auth.current_user {
+        let account = models::Account::from_user(&user).await;
+
+        let score = models::Comment::vote(comment_id, post_id, account.id, 1).await;
+        return Json(json!({"score": score}));
+    }
+    Json(json!({"score": comment.score}))
+}
+pub async fn downvote_comment(
+    auth: AuthContext,
+    Path((post_id, comment_id)): Path<(u32, u32)>,
+) -> Json<Value> {
+    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
+    if maybe_post.is_none() || maybe_comment.is_none() {
+        return Json(json!({"score": -1}));
+    }
+    let comment = maybe_comment.unwrap();
+
+    if let Some(user) = auth.current_user {
+        let account = models::Account::from_user(&user).await;
+
+        let score = models::Comment::vote(comment_id, post_id, account.id, -1).await;
+        return Json(json!({"score": score}));
+    }
+    Json(json!({"score": comment.score}))
+}
+
 
 
 pub async fn post_page(
@@ -280,9 +318,6 @@ pub async fn root(
     engine: AppEngine,
     Key(key): Key,
  ) ->  impl IntoResponse {
-    println!("GET /");
-    println!("key: {:?}", key);
-
     #[derive(Serialize)]
     pub struct RootData {
         post_datas: Vec<PostData>,
