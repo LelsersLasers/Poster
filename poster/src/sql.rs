@@ -56,6 +56,7 @@ pub const ADD_POST_SQL: &str = r#"
     INSERT INTO posts
         (title, content, date, score, account_id)
     VALUES (?, ?, ?, ?, ?)
+    RETURNING id
 ;"#;
 
 pub const GET_ALL_POSTS_SQL: &str = r#"

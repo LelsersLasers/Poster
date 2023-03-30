@@ -182,19 +182,23 @@ impl Post {
     }
     pub async fn add_to_db(&self) {
         let db = sql::connect_to_db().await;
-        sqlx::query(sql::ADD_POST_SQL)
+        let new_id = sqlx::query(sql::ADD_POST_SQL)
             .bind(&self.title)
             .bind(&self.content)
             .bind(&self.date)
             .bind(self.score)
             .bind(self.account_id)
-            .execute(&db)
+            .map(|row: SqliteRow| {
+                let id: u32 = row.try_get("id").unwrap();
+                id
+            })
+            .fetch_one(&db)
             .await
             .unwrap();
 
         // auto upvote
         sqlx::query(sql::ADD_POST_VOTE_SQL)
-            .bind(self.id)
+            .bind(new_id)
             .bind(self.account_id)
             .bind(1)
             .execute(&db)
