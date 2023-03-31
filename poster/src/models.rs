@@ -255,6 +255,18 @@ impl Post {
     pub async fn vote(id: u32, account_id: u32, vote_value: i32) {
         let db = sql::connect_to_db().await;
 
+        let existed = sqlx::query(sql::POST_VOTE_EXISTS_SQL)
+            .bind(id)
+            .bind(account_id)
+            .bind(vote_value)
+            .map(|row: SqliteRow| {
+                let count: i32 = row.try_get("count").unwrap();
+                count != 0
+            })
+            .fetch_one(&db)
+            .await
+            .unwrap();
+
         sqlx::query(sql::DELETE_POST_VOTE_SQL)
             .bind(id)
             .bind(account_id)
@@ -262,13 +274,15 @@ impl Post {
             .await
             .unwrap();
 
-        sqlx::query(sql::ADD_POST_VOTE_SQL)
-            .bind(id)
-            .bind(account_id)
-            .bind(vote_value)
-            .execute(&db)
-            .await
-            .unwrap();
+        if !existed { // if existed => untoggle vote
+            sqlx::query(sql::ADD_POST_VOTE_SQL)
+                .bind(id)
+                .bind(account_id)
+                .bind(vote_value)
+                .execute(&db)
+                .await
+                .unwrap();
+        }
 
         let new_post_score = sqlx::query(sql::CALCULATE_POST_SCORE_SQL)
             .bind(id)
