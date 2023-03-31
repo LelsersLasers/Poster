@@ -106,45 +106,10 @@ document.addEventListener("DOMContentLoaded", () => {
 {% endblock %}
 
 
-{% macro renderPost(post_data, basePath) %}
-	<h5 class="card-header">{{ post_data.post.title }}</h5>
-		
-	<input type="hidden" name="upvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
-	<input type="hidden" name="downvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'downvote_post/' ~ post_data.post.id }}" readonly>
-
-	<div class="card-body">
-		<h5 class="card-title text-muted">{{ post_data.account.display_name }}</h5>
-		<p class="card-text">{{ post_data.post.content }}</p>
-		<p class="card-text text-muted">{{ post_data.comment_count }} comments</p>
-		<p id="score-{{ post_data.post.id }}" class="card-text text-muted">{{ post_data.post.score }} upvotes</p>
-
-		<!-- NOTE: syntax errors are okay here, from templating -->
-		{% if not logged_in %}
-			<button onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-success mb-2" disabled>Upvote</button>
-			<button onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-danger mb-2" disabled>Downvote</button>
-		{% elif post_data.vote_value == -1 %}
-			<button onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
-			<button onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-danger mb-2">Downvote</button>
-		{% elif post_data.vote_value == 1 %}
-			<button onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-success mb-2">Upvote</button>
-			<button onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>
-		{% else %}
-			<button onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
-			<button onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>
-		{% endif %}
-		<br />
-
-		<a href="{{ basePath ~ 'post/' ~ post_data.post.id }}" class="btn btn-primary">View Post</a>
-	</div>
-{% endmacro %}
-
-
 
 {% block body %}
   
 	<div class="row justify-content-center full-width">
-    	<div id="contentContainer" class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6">
-			<h1>POSTS</h1>
-    	</div>
+    	<div id="contentContainer" class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6"></div>
 	</div>
 {% endblock %}
