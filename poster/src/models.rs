@@ -141,6 +141,14 @@ impl Account {
 
 
 #[derive(Serialize)]
+pub struct PostData {
+    post: models::Post,
+    account: models::Account,
+    vote_value: i32,
+    comment_count: u32,
+}
+
+#[derive(Serialize)]
 pub struct Post {
     pub id: u32,
     pub title: String,
@@ -244,7 +252,7 @@ impl Post {
             .await
             .unwrap()
     }
-    pub async fn vote(id: u32, account_id: u32, vote_value: i32) -> i32 {
+    pub async fn vote(id: u32, account_id: u32, vote_value: i32) {
         let db = sql::connect_to_db().await;
 
         sqlx::query(sql::DELETE_POST_VOTE_SQL)
@@ -278,8 +286,6 @@ impl Post {
             .execute(&db)
             .await
             .unwrap();
-
-        new_post_score
     }
     pub async fn maybe_account_vote(&self, account_id: u32) -> Option<i32> {
         let db = sql::connect_to_db().await;
@@ -293,6 +299,24 @@ impl Post {
             .fetch_optional(&db)
             .await
             .unwrap()
+    }
+    pub async fn into_post_data(self, auth: &AuthContext) -> PostData {
+        let account = models::Account::from_id(self.account_id).await;
+        let comment_count = self.count_comments().await;
+        let vote_value = if auth.current_user.is_some() {
+            let user = auth.current_user.as_ref().unwrap();
+            let account = models::Account::from_user(user).await;
+            let maybe_vote_value = self.maybe_account_vote(account.id).await;
+            if let Some(vote_value) = maybe_vote_value {
+                vote_value
+            } else {
+                0
+            }
+        } else {
+            -2 // not -1, 0, 1
+        };
+
+        PostData { post: self, account, comment_count, vote_value }
     }
 }
 

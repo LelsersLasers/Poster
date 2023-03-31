@@ -4,6 +4,30 @@
 {{ super() }}
 
 <script>
+function upvotePost(postId) {
+	const upvotePath = document.getElementsByName("upvote_path-" + postId)[0].value;
+	fetch(upvotePath)
+		.then(response => response.json())
+		.then(postData => {
+			const url = getUrl();
+			const card = document.getElementById("card-" + postData.post.id);
+			const postHTML = renderPost(postData, url);
+			card.innerHTML = postHTML;
+		})
+		.catch(error => console.log(error));
+}
+function downvotePost(postId) {
+	const downvotePath = document.getElementsByName("downvote_path-" + postId)[0].value;
+	fetch(downvotePath)
+		.then(response => response.json())
+		.then(postData => {
+			const url = getUrl();
+			const card = document.getElementById("card-" + postData.post.id);
+			const postHTML = renderPost(postData, url);
+			card.innerHTML = postHTML;
+		})
+		.catch(error => console.log(error));
+}
 
 
 function getUrl() {

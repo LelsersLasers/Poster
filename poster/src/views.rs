@@ -192,38 +192,46 @@ pub async fn add_comment_to_comment(
 pub async fn upvote_post(
     auth: AuthContext,
     Path(post_id): Path<u32>,
-) -> Json<Value> {
+) -> Json<Option<models::PostData>> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
     if maybe_post.is_none() {
-        return Json(json!({"score": -1}));
+        return Json(None);
     }
-    let post = maybe_post.unwrap();
+    let unchanged_post = maybe_post.unwrap();
 
-    if let Some(user) = auth.current_user {
-        let account = models::Account::from_user(&user).await;
+    if let Some(user) = &auth.current_user {
+        let account = models::Account::from_user(user).await;
 
-        let score = models::Post::vote(post_id, account.id, 1).await;
-        return Json(json!({"score": score}));
+        models::Post::vote(post_id, account.id, 1).await;
+        let post = models::Post::maybe_from_id(post_id).await.unwrap();
+        let post_data = post.into_post_data(&auth).await;
+        return Json(Some(post_data));
     }
-    Json(json!({"score": post.score}))
+
+    let post_data = unchanged_post.into_post_data(&auth).await;
+    Json(Some(post_data))
 }
 pub async fn downvote_post(
     auth: AuthContext,
     Path(post_id): Path<u32>,
-) -> Json<Value> {
+) -> Json<Option<models::PostData>> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
     if maybe_post.is_none() {
-        return Json(json!({"score": -1}));
+        return Json(None);
     }
-    let post = maybe_post.unwrap();
+    let unchanged_post = maybe_post.unwrap();
 
-    if let Some(user) = auth.current_user {
-        let account = models::Account::from_user(&user).await;
+    if let Some(user) = &auth.current_user {
+        let account = models::Account::from_user(user).await;
 
-        let score = models::Post::vote(post_id, account.id, -1).await;
-        return Json(json!({"score": score}));
+        models::Post::vote(post_id, account.id, -1).await;
+        let post = models::Post::maybe_from_id(post_id).await.unwrap();
+        let post_data = post.into_post_data(&auth).await;
+        return Json(Some(post_data));
     }
-    Json(json!({"score": post.score}))
+
+    let post_data = unchanged_post.into_post_data(&auth).await;
+    Json(Some(post_data))
 }
 
 pub async fn upvote_comment(
@@ -313,18 +321,9 @@ pub async fn post_page(
 
 
 
-
-#[derive(Serialize)]
-pub struct PostData {
-    post: models::Post,
-    account: models::Account,
-    vote_value: i32,
-    comment_count: u32,
-}
-
 pub async fn get_posts(
     auth: AuthContext,
-) -> Json<Vec<PostData>> {
+) -> Json<Vec<models::PostData>> {
     let mut post_datas = Vec::new();
     
     let db = sql::connect_to_db().await;
@@ -362,21 +361,8 @@ pub async fn get_posts(
 
     while let Some(row) = stream.next().await {
         let post = row.unwrap();
-        let account = models::Account::from_id(post.account_id).await;
-        let comment_count = post.count_comments().await;
-        let vote_value = if auth.current_user.is_some() {
-            let user = auth.current_user.as_ref().unwrap();
-            let account = models::Account::from_user(user).await;
-            let maybe_vote_value = post.maybe_account_vote(account.id).await;
-            if let Some(vote_value) = maybe_vote_value {
-                vote_value
-            } else {
-                0
-            }
-        } else {
-            -2 // not -1, 0, 1
-        };
-        post_datas.push(PostData { post, account, comment_count, vote_value });
+        let post_data = post.into_post_data(&auth).await;
+        post_datas.push(post_data);
     }
 
     Json(post_datas)
