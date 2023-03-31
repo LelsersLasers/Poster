@@ -312,32 +312,22 @@ pub async fn post_page(
 }
 
 
-pub async fn root(
-    // State(pool): State<SqlitePool>
+
+
+#[derive(Serialize)]
+pub struct PostData {
+    post: models::Post,
+    account: models::Account,
+    vote_value: i32,
+    comment_count: u32,
+}
+
+pub async fn get_posts(
     auth: AuthContext,
-    engine: AppEngine,
-    Key(key): Key,
- ) ->  impl IntoResponse {
-    #[derive(Serialize)]
-    pub struct RootData {
-        post_datas: Vec<PostData>,
-        logged_in: bool,
-    }
-    #[derive(Serialize)]
-    pub struct PostData {
-        post: models::Post,
-        account: models::Account,
-        vote_value: i32,
-        comment_count: u32,
-    }
-
-
+) -> Json<Vec<PostData>> {
+    let mut post_datas = Vec::new();
+    
     let db = sql::connect_to_db().await;
-
-    let mut data = RootData {
-        post_datas: vec![],
-        logged_in: auth.current_user.is_some(),
-    };
 
     let mut stream = sqlx::query(sql::GET_ALL_POSTS_SQL)
         .map(|row: SqliteRow| {
@@ -374,7 +364,7 @@ pub async fn root(
         let post = row.unwrap();
         let account = models::Account::from_id(post.account_id).await;
         let comment_count = post.count_comments().await;
-        let vote_value = if data.logged_in {
+        let vote_value = if auth.current_user.is_some() {
             let user = auth.current_user.as_ref().unwrap();
             let account = models::Account::from_user(user).await;
             let maybe_vote_value = post.maybe_account_vote(account.id).await;
@@ -386,9 +376,26 @@ pub async fn root(
         } else {
             -2 // not -1, 0, 1
         };
-        data.post_datas.push(PostData { post, account, comment_count, vote_value });
+        post_datas.push(PostData { post, account, comment_count, vote_value });
     }
 
+    Json(post_datas)
+}
+pub async fn root(
+    // State(pool): State<SqlitePool>
+    auth: AuthContext,
+    engine: AppEngine,
+    Key(key): Key,
+ ) ->  impl IntoResponse {
+
+    #[derive(Serialize)]
+    pub struct IndexData {
+        logged_in: bool,
+    }
+
+    let data = IndexData {
+        logged_in: auth.current_user.is_some(),
+    };
 
     RenderHtml(key, engine, data)
 }

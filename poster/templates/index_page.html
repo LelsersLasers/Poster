@@ -5,11 +5,78 @@
 
 <script>
 
-function update_post(postId, basePath) {
-	const card = document.getElementById("card-" + postId);
-	card.innerHTML = "{{ renderPost(post_data, basePath) }}";
+
+function getUrl() {
+	return new URL(window.location.href) + "/";
+}
+async function getPostDataJson(url) {
+	const response = await fetch(url + "get_posts");
+	const data = await response.json();
+	return data;
+}
+async function renderPostDataJsons() {
+	const url = getUrl();
+
+	const contentContainer = document.getElementById("contentContainer");
+
+	const postDatas = await getPostDataJson(url);
+	for (let postData of postDatas) {
+		const card = document.createElement("div");
+		card.id = "card-" + postData.post.id;
+		card.className = "card box-shadow m-4";
+
+		const postHTML = renderPost(postData, url);
+		card.innerHTML = postHTML;		
+		
+		contentContainer.appendChild(card);
+	}
+	
+}
+function renderPost(post_data, basePath) {
+	let output = ``;
+	output += `
+ 
+	<h5 class="card-header">${ post_data.post.title }</h5>
+	
+	<input type="hidden" name="upvote_path-${ post_data.post.id }" value="${ basePath + 'upvote_post/' + post_data.post.id }" readonly>
+	<input type="hidden" name="downvote_path-${ post_data.post.id }" value="${ basePath + 'downvote_post/' + post_data.post.id }" readonly>
+
+	<div class="card-body">
+		<h5 class="card-title text-muted">${ post_data.account.display_name }</h5>
+		<p class="card-text">${ post_data.post.content }</p>
+		<p class="card-text text-muted">${ post_data.comment_count } comments</p>
+		<p id="score-${ post_data.post.id }" class="card-text text-muted">${ post_data.post.score } upvotes</p>
+	`;
+
+	if (post_data.vote_value == -2) {
+		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-success mb-2" disabled>Upvote</button>
+					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-danger mb-2" disabled>Downvote</button>`
+	} else if (post_data.vote_value == -1) {
+		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
+					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-danger mb-2">Downvote</button>`
+	} else if (post_data.vote_value == 1) {
+		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-success mb-2">Upvote</button>
+					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>`
+	} else {
+		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
+					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>`
+	}
+		
+	output += `
+		<br />
+
+		<a href="${ basePath + 'post/' + post_data.post.id }" class="btn btn-primary">View Post</a>
+	</div>
+
+	`
+
+	return output;
 }
 
+
+document.addEventListener("DOMContentLoaded", () => {
+	renderPostDataJsons();
+});
 </script>
 
 {% endblock %}
@@ -17,7 +84,7 @@ function update_post(postId, basePath) {
 
 {% macro renderPost(post_data, basePath) %}
 	<h5 class="card-header">{{ post_data.post.title }}</h5>
-	
+		
 	<input type="hidden" name="upvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
 	<input type="hidden" name="downvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'downvote_post/' ~ post_data.post.id }}" readonly>
 
@@ -53,16 +120,7 @@ function update_post(postId, basePath) {
   
 	<div class="row justify-content-center full-width">
     	<div id="contentContainer" class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6">
-			{% for post_data in post_datas %}
-				<div id="card-{{ post_data.post.id }}" class="card box-shadow m-4">
-					{{ renderPost(post_data, basePath) }}
-				</div>
-			{% endfor %}
+			<h1>POSTS</h1>
     	</div>
-		<!-- <div id="contentContainer" class="col-0 col-sm-0 col-md-2 col-lg-3 col-xl-3">
-			<div class="jumbotron mt-4">
-				HI
-			</div> -->
-		</div>
 	</div>
 {% endblock %}

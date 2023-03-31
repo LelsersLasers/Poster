@@ -166,6 +166,7 @@ async fn main() {
         // .route("/protected", get(|| async { Redirect::to(BASE_PATH) }))
 
         .route("/", get(views::root))
+        .route("/get_posts", get(views::get_posts))
 
         
         .route("/login_page", get(views::simple_page))
