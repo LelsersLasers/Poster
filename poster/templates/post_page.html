@@ -28,6 +28,77 @@ function downvoteComment(postId, commentId) {
 		.catch(error => console.log(error));
 }
 
+
+
+
+// TODO:!!!!!!!!!!!
+function upvotePost(postId) {
+	const upvotePath = document.getElementsByName("upvote_path-" + postId)[0].value;
+	fetch(upvotePath)
+		.then(response => response.json())
+		.then(postData => {
+			const score = postData.post.score;
+			const scoreElement = document.getElementById("score-" + postId);
+			scoreElement.innerHTML = score + " upvotes";
+
+			setPostButtonStyles(postData.vote_value);
+		})
+		.catch(error => console.log(error));
+}
+function downvotePost(postId) {
+	const downvotePath = document.getElementsByName("downvote_path-" + postId)[0].value;
+	fetch(downvotePath)
+		.then(response => response.json())
+		.then(postData => {
+			const score = postData.post.score;
+			const scoreElement = document.getElementById("score-" + postId);
+			scoreElement.innerHTML = score + " upvotes";
+
+			setPostButtonStyles(postData.vote_value);
+		})
+}
+function setPostButtonStyles(vote_value) {
+	const upvotePostButton = document.getElementById("upvotePostButton");
+	const downvotePostButton = document.getElementById("downvotePostButton");
+
+	if (vote_value == -2) {
+		upvotePostButton.classList.remove("btn-success");
+		upvotePostButton.classList.add("btn-outline-success");
+		upvotePostButton.disabled = true;
+
+		downvotePostButton.classList.remove("btn-danger");
+		downvotePostButton.classList.add("btn-outline-danger");
+		downvotePostButton.disabled = true;
+	} else if (vote_value == -1) {
+		upvotePostButton.classList.remove("btn-success");
+		upvotePostButton.classList.add("btn-outline-success");
+		upvotePostButton.disabled = false;
+
+		downvotePostButton.classList.add("btn-danger");
+		downvotePostButton.classList.remove("btn-outline-danger");
+		downvotePostButton.disabled = false;
+	} else if (vote_value == 0) {
+		upvotePostButton.classList.remove("btn-success");
+		upvotePostButton.classList.add("btn-outline-success");
+		upvotePostButton.disabled = false;
+
+		downvotePostButton.classList.remove("btn-danger");
+		downvotePostButton.classList.add("btn-outline-danger");
+		downvotePostButton.disabled = false;
+	} else if (vote_value == 1) {
+		upvotePostButton.classList.add("btn-success");
+		upvotePostButton.classList.remove("btn-outline-success");
+		upvotePostButton.disabled = false;
+
+		downvotePostButton.classList.remove("btn-danger");
+		downvotePostButton.classList.add("btn-outline-danger");
+		downvotePostButton.disabled = false;
+	}
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+	setPostButtonStyles({{ post_data.vote_value }});
+});
 </script>
 {% endblock %}
 
@@ -38,19 +109,19 @@ function downvoteComment(postId, commentId) {
 			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
 			<p class="card-text">{{ comment_tree_node.comment.content }}</p>
 
-			<p id="score-{{ post.id }}-{{ comment_tree_node.comment.id }}" class="card-text text-muted">{{ comment_tree_node.comment.score }} upvotes</p>
+			<p id="score-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" class="card-text text-muted">{{ comment_tree_node.comment.score }} upvotes</p>
 
 
-			<input type="hidden" name="upvote_path-comment-{{ post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'upvote_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
-			<input type="hidden" name="downvote_path-comment-{{ post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'downvote_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
+			<input type="hidden" name="upvote_path-comment-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'upvote_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
+			<input type="hidden" name="downvote_path-comment-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'downvote_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
 
 			<!-- NOTE: syntax errors are okay here, from templating -->
-			<button onclick="upvoteComment({{ post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Upvote</button>
-			<button onclick="downvoteComment({{ post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Downvote</button>
+			<button onclick="upvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Upvote</button>
+			<button onclick="downvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Downvote</button>
 
 
 			{% if logged_in %}
-				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
+				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
 						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
 			
 						<textarea type="content" id="content" name="content" class="" placeholder="Comment"></textarea>
@@ -74,24 +145,26 @@ function downvoteComment(postId, commentId) {
 
 		<div class="jumbotron m-4 py-4">
 
-			<h5 class="display-4">{{ post.title }}</h5>
-			<p class="text-muted">{{ account.display_name }}</p>
+			<h5 class="display-4">{{ post_data.post.title }}</h5>
+			<p class="text-muted">{{ post_data.account.display_name }}</p>
 			<hr class="my-4">
 
-			<input type="hidden" name="upvote_path-{{ post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post.id }}" readonly>
-			<input type="hidden" name="downvote_path-{{ post.id }}" value="{{ basePath ~ 'downvote_post/' ~ post.id }}" readonly>
+			<input type="hidden" name="upvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
+			<input type="hidden" name="downvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'downvote_post/' ~ post_data.post.id }}" readonly>
 
-			<p class="lead">{{ post.content }}</p>
+			<p class="lead">{{ post_data.post.content }}</p>
 			
 
-			<p id="score-{{ post.id }}" class="card-text text-muted">{{ post.score }} upvotes</p>
+			<p id="score-{{ post_data.post.id }}" class="card-text text-muted">{{ post_data.post.score }} upvotes</p>
 			<!-- NOTE: syntax errors are okay here, from templating -->
-			<button onclick="upvotePost({{ post.id }});" class="btn btn-sm btn-secondary mb-2">Upvote</button>
-			<button onclick="downvotePost({{ post.id }});" class="btn btn-sm btn-secondary mb-2">Downvote</button>
+			<div id="voteButtons">
+				<button id="upvotePostButton" onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
+				<button id="downvotePostButton" onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>
+			</div>
 			<br />
 
 			{% if logged_in %}
-				<form action="{{ basePath ~ 'add_comment_to_post/' ~ post.id }}" method="post" class="">
+				<form action="{{ basePath ~ 'add_comment_to_post/' ~ post_data.post.id }}" method="post" class="">
 						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
 			
 						<textarea type="content" id="content" name="content" class="" placeholder="Comment"></textarea>
@@ -104,6 +177,11 @@ function downvoteComment(postId, commentId) {
 			{% endif %}
 
 			<br />
+			
+			
+			<p class="card-text text-muted">${ post_data.comment_count } comments</p>
+
+
 			<button type="button" class="btn btn-secondary btn-sm mt-1" onclick="history.back()">
                 Back
             </button>

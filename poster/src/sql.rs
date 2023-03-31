@@ -150,6 +150,13 @@ pub const UPDATE_POST_SCORE_SQL: &str = r#"
     WHERE
         id = ?
 ;"#;
+pub const POST_VOTE_EXISTS_SQL: &str = r#"
+    SELECT
+        COUNT(*) AS count
+    FROM post_votes
+    WHERE
+        post_id = ? AND account_id = ? and vote = ?
+;"#;
 //----------------------------------------------------------------------------//
 pub const DELETE_COMMENT_VOTE_SQL: &str = r#"
     DELETE FROM comment_votes

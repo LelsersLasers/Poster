@@ -287,15 +287,12 @@ pub async fn post_page(
 
         #[derive(Serialize)]
         struct PostPageData {
-            post: models::Post,
-            account: models::Account,
+            post_data: models::PostData,
             logged_in: bool,
             comment_tree_nodes: Vec<models::CommentTreeNode>,
         }
 
         post.content = post.content.replace('\n', "<br />");
-
-        let account = models::Account::from_id(post.account_id).await;
         
         let comments = models::Comment::top_level_comments_from_post_id(post.id).await;
         
@@ -306,9 +303,11 @@ pub async fn post_page(
             comment_tree_nodes.push(comment_tree_node);
         }
 
+        let post_data = post.into_post_data(&auth).await;
+
+
         let data = PostPageData {
-            post,
-            account,
+            post_data,
             logged_in: auth.current_user.is_some(),
             comment_tree_nodes,
         };
