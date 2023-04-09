@@ -204,6 +204,7 @@ async fn main() {
     let all_routes = Router::new()
         .route("/", get(|| async { Redirect::to(BASE_PATH) })) // TODO
         .nest(BASE_PATH, routes)
+        .fallback(get(|| async { Redirect::to(BASE_PATH) })) // TODO: I don't think this is what I want
         ;
 
     let app = NormalizePathLayer::trim_trailing_slash().layer(all_routes);
