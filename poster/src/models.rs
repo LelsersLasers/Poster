@@ -502,7 +502,7 @@ impl Comment {
     }
     pub async fn add_to_db(&self) {
         let db = sql::connect_to_db().await;
-        if let Some(parent_comment_id) = self.parent_comment_id {
+        let new_id = if let Some(parent_comment_id) = self.parent_comment_id {
             sqlx::query(sql::ADD_COMMENT_TO_COMMENT_SQL)
                 .bind(&self.content)
                 .bind(&self.date)
@@ -510,9 +510,13 @@ impl Comment {
                 .bind(self.account_id)
                 .bind(self.post_id)
                 .bind(parent_comment_id)
-                .execute(&db)
+                .map(|row: SqliteRow| {
+                    let id: u32 = row.try_get("id").unwrap();
+                    id
+                })
+                .fetch_one(&db)
                 .await
-                .unwrap();
+                .unwrap()
         } else {
             sqlx::query(sql::ADD_COMMENT_TO_POST_SQL)
                 .bind(&self.content)
@@ -520,26 +524,31 @@ impl Comment {
                 .bind(self.score)
                 .bind(self.account_id)
                 .bind(self.post_id)
-                .execute(&db)
+                .map(|row: SqliteRow| {
+                    let id: u32 = row.try_get("id").unwrap();
+                    id
+                })
+                .fetch_one(&db)
                 .await
-                .unwrap();
-        }
+                .unwrap()
+        };
 
         // TODO: auto upvote
-        // sqlx::query(sql::ADD_COMMENT_VOTE_SQL)
-        //     .bind(new_id)
-        //     .bind(self.account_id)
-        //     .bind(1)
-        //     .execute(&db)
-        //     .await
-        //     .unwrap();
+        sqlx::query(sql::ADD_COMMENT_VOTE_SQL)
+            .bind(new_id)
+            .bind(self.post_id)
+            .bind(self.account_id)
+            .bind(1)
+            .execute(&db)
+            .await
+            .unwrap();
 
-        // sqlx::query(sql::UPDATE_POST_SCORE_SQL)
-        //     .bind(1)
-        //     .bind(self.id)
-        //     .execute(&db)
-        //     .await
-        //     .unwrap();
+        sqlx::query(sql::UPDATE_COMMENT_SCORE_SQL)
+            .bind(1)
+            .bind(self.id)
+            .execute(&db)
+            .await
+            .unwrap();
     }
     pub async fn get_vote_value(id: u32, post_id: u32, auth: &AuthContext) -> i32 {
         

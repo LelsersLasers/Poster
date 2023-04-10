@@ -93,12 +93,14 @@ pub const ADD_COMMENT_TO_POST_SQL: &str = r#"
     INSERT INTO comments
         (content, date, score, account_id, post_id)
     VALUES (?, ?, ?, ?, ?)
+    RETURNING id
 ;"#;
 
 pub const ADD_COMMENT_TO_COMMENT_SQL: &str = r#"
     INSERT INTO comments
         (content, date, score, account_id, post_id, parent_comment_id)
     VALUES (?, ?, ?, ?, ?, ?)
+    RETURNING id
 ;"#;
 
 // pub const GET_COMMENTS_FROM_POST_SQL: &str = r#"
