@@ -158,40 +158,35 @@ async fn main() {
     // build our application with a route
     let routes = Router::new()
 
-        // affects every route above it
-        // .route_layer(RequireAuthorizationLayer::<models::User>::login())
-
-        // .route("/protected", get(|| async { Redirect::to(BASE_PATH) }))
-
-        .route("/", get(views::root))
-        .route("/get_posts", get(views::get_posts))
+        .route("/", get(views::root)) // all
+        .route("/get_posts", get(views::get_posts)) // all
 
         
-        .route("/login_page", get(views::simple_page))
-        .route("/signup_page", get(views::simple_page))
+        .route("/login_page", get(views::user_auth_page)) // if not logged in
+        .route("/signup_page", get(views::user_auth_page)) // if not logged in
 
-        .route("/login_user", post(views::login_user))
-        .route("/signup_handler", post(views::signup_handler))
+        .route("/login_user", post(views::login_user)) // all
+        .route("/signup_handler", post(views::signup_handler)) // all
 
-        .route("/logout", get(views::logout))
+        .route("/logout", get(views::logout)) // if logged in
 
 
-        .route("/create_post_page", get(views::simple_page))
-        .route("/create_post", post(views::create_post))
+        .route("/create_post_page", get(views::create_post_page)) // if logged in
+        .route("/create_post", post(views::create_post)) // if logged in
         
 
-        .route("/post/:post_id", get(views::post_page))
+        .route("/post/:post_id", get(views::post_page)) // all
 
 
-        .route("/add_comment_to_post/:post_id", post(views::add_comment_to_post))
-        .route("/add_comment_to_comment/:post_id/:comment_id", post(views::add_comment_to_comment))
+        .route("/add_comment_to_post/:post_id", post(views::add_comment_to_post)) // if logged in
+        .route("/add_comment_to_comment/:post_id/:comment_id", post(views::add_comment_to_comment)) // if logged in
 
 
-        .route("/upvote_post/:post_id", get(views::upvote_post))
-        .route("/downvote_post/:post_id", get(views::downvote_post))
+        .route("/upvote_post/:post_id", get(views::upvote_post)) // if logged in
+        .route("/downvote_post/:post_id", get(views::downvote_post)) // if logged in
 
-        .route("/upvote_comment/:post_id/:comment_id", get(views::upvote_comment))
-        .route("/downvote_comment/:post_id/:comment_id", get(views::downvote_comment))
+        .route("/upvote_comment/:post_id/:comment_id", get(views::upvote_comment)) // if logged in
+        .route("/downvote_comment/:post_id/:comment_id", get(views::downvote_comment)) // if logged in
         
         .layer(auth_layer)
         .layer(session_layer)
@@ -200,7 +195,7 @@ async fn main() {
         // .with_state(pool);
 
     let all_routes = Router::new()
-        .route("/", get(|| async { Redirect::to(BASE_PATH) })) // TODO
+        .route("/", get(|| async { Redirect::to(BASE_PATH) })) // TODO: trim trailing slash -> "" instead of "/"
         .nest(BASE_PATH, routes)
         .fallback(get(|| async { Redirect::to(BASE_PATH) })) // TODO: I don't think this is what I want
         .layer(middleware::from_fn(logging_middleware))

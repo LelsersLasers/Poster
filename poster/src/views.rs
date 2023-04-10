@@ -2,8 +2,9 @@ use crate::*;
 
 
 pub async fn logout(mut auth: AuthContext) -> impl IntoResponse {
-    dbg!("Logging out user: {}", &auth.current_user);
-    auth.logout().await;
+    if auth.current_user.is_some() {
+        auth.logout().await;
+    }
 
     Redirect::to(&(BASE_PATH.to_string() + "/"))
 }
@@ -116,11 +117,29 @@ pub async fn create_post(
 }
 
 
-pub async fn simple_page(
+pub async fn create_post_page(
     engine: AppEngine,
     Key(key): Key,
+    auth: AuthContext,
 ) -> impl IntoResponse {
-    RenderHtml(key, engine, ())
+    if auth.current_user.is_none() {
+        Redirect::to(BASE_PATH).into_response().into_response()
+    } else {
+        RenderHtml(key, engine, ()).into_response()
+    }
+}
+
+pub async fn user_auth_page(
+    engine: AppEngine,
+    Key(key): Key,
+    auth: AuthContext,
+) -> impl IntoResponse {
+
+    if auth.current_user.is_some() {
+        Redirect::to(BASE_PATH).into_response().into_response()
+    } else {
+        RenderHtml(key, engine, ()).into_response()
+    }
 }
 
 

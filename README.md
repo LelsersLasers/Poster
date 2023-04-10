@@ -5,7 +5,6 @@ Simple reddit-esque social media like website (hopefully)
 ## TODO
 
 - Redirect "/" ("") to "/poster"
-- Permission redirecting
 - On signup/login redirect to where they were before
 - Login/signup page has feedback on failed login/signup
 - Infinite scroll on main page
