@@ -339,6 +339,7 @@ pub struct CommentTreeNode {
     pub comment: Comment,
     pub account: Account,
     pub children: Vec<CommentTreeNode>,
+    pub vote_value: i32,
 }
 
 #[derive(Serialize)]
@@ -393,7 +394,7 @@ impl Comment {
             .unwrap()
     }
     #[async_recursion]
-    pub async fn build_comment_tree(self) -> CommentTreeNode {
+    pub async fn build_comment_tree(self, auth: &AuthContext) -> CommentTreeNode {
         let mut children = Vec::new();
         let db = sql::connect_to_db().await;
         let child_comments = sqlx::query(sql::GET_COMMENTS_ON_COMMENT_SQL)
@@ -413,13 +414,17 @@ impl Comment {
             .await
             .unwrap();
         for child_comment in child_comments {
-            children.push(Comment::build_comment_tree(child_comment).await);
+            children.push(Comment::build_comment_tree(child_comment, auth).await);
         }
+        
+        let vote_value = Comment::get_vote_value(self.id, self.post_id, auth).await;
+
         let account = Account::from_id(self.account_id).await;
         CommentTreeNode {
             comment: self,
             account,
             children,
+            vote_value,
         }
     }
     pub async fn maybe_from_id(id: u32, post_id: u32) -> Option<Self> {
@@ -519,6 +524,22 @@ impl Comment {
                 .await
                 .unwrap();
         }
+
+        // TODO: auto upvote
+        // sqlx::query(sql::ADD_COMMENT_VOTE_SQL)
+        //     .bind(new_id)
+        //     .bind(self.account_id)
+        //     .bind(1)
+        //     .execute(&db)
+        //     .await
+        //     .unwrap();
+
+        // sqlx::query(sql::UPDATE_POST_SCORE_SQL)
+        //     .bind(1)
+        //     .bind(self.id)
+        //     .execute(&db)
+        //     .await
+        //     .unwrap();
     }
     pub async fn get_vote_value(id: u32, post_id: u32, auth: &AuthContext) -> i32 {
         

@@ -313,7 +313,7 @@ pub async fn post_page(
         
         let mut comment_tree_nodes = Vec::new();
         for comment in comments {
-            let comment_tree_node = models::Comment::build_comment_tree(comment).await;
+            let comment_tree_node = models::Comment::build_comment_tree(comment, &auth).await;
             comment_tree_nodes.push(comment_tree_node);
         }
 

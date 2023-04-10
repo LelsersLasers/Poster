@@ -37,6 +37,7 @@ function setCommentButtonStyles(vote_value, commentId) {
 	const upvoteCommentButton = document.getElementById("commentUpvoteButton-" + commentId);
 	const downvoteCommentButton = document.getElementById("commentDownvoteButton-" + commentId);
 
+
 	if (vote_value == -2) {
 		upvoteCommentButton.classList.remove("btn-success");
 		upvoteCommentButton.classList.add("btn-outline-success");
@@ -139,6 +140,17 @@ function setPostButtonStyles(vote_value) {
 
 document.addEventListener("DOMContentLoaded", function() {
 	setPostButtonStyles({{ post_data.vote_value }});
+	
+	let allButtons = document.querySelectorAll("button");
+	for (let i = 0; i < allButtons.length; i++) {
+		const button = allButtons[i];
+		if (button.id.startsWith("commentUpvoteButton-")) {
+			const commentId = button.id.split("-")[1];
+			const input = document.getElementsByName("comment_vote_value-" + commentId)[0];
+			const vote_value = parseInt(input.value);
+			setCommentButtonStyles(vote_value, commentId);
+		}
+	}
 });
 </script>
 {% endblock %}
@@ -159,7 +171,9 @@ document.addEventListener("DOMContentLoaded", function() {
 			<!-- NOTE: syntax errors are okay here, from templating -->
 			<button id="commentUpvoteButton-{{ comment_tree_node.comment.id }}" onclick="upvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-success mb-2">Upvote</button>
 			<button id="commentDownvoteButton-{{ comment_tree_node.comment.id }}" onclick="downvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-danger mb-2">Downvote</button>
-
+			<input type="hidden" name="comment_vote_value-{{ comment_tree_node.comment.id }}"" value="{{ comment_tree_node.vote_value }}" readonly>
+			
+			
 			{% if logged_in %}
 				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
 						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->

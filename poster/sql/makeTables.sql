@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS comments (
 
 
 CREATE TABLE IF NOT EXISTS post_votes ( -- linking table for many to many relationship
-    vote            INTEGER NOT NULL, -- -1, 0, 1
+    vote            INTEGER NOT NULL, -- -1, 1
 
     account_id      INTEGER NOT NULL,
     post_id         INTEGER NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS post_votes ( -- linking table for many to many relati
 );
 
 CREATE TABLE IF NOT EXISTS comment_votes ( -- linking table for many to many relationship
-    vote            INTEGER NOT NULL, -- -1, 0, 1
+    vote            INTEGER NOT NULL, -- -1, 1
 
     account_id      INTEGER NOT NULL,
     comment_id      INTEGER NOT NULL,
