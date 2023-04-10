@@ -25,3 +25,5 @@ axum-template = { version = "0.14.0", features = ["minijinja"] }
 minijinja = { version = "0.30.7", features = ["source"] }
 
 async-recursion = "1.0.4"
+
+chrono = "0.4.24"

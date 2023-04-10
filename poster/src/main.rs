@@ -4,10 +4,11 @@ use axum::{
     routing::{get, post},
     // Extension,
     Router,
-    response::{Redirect, Json},
+    response::{Redirect, Json, Response},
     extract::FromRef,
     ServiceExt,
-    Form,
+    Form, middleware::{self, Next},
+    http::Request
 };
 use tower::layer::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
@@ -202,6 +203,7 @@ async fn main() {
         .route("/", get(|| async { Redirect::to(BASE_PATH) })) // TODO
         .nest(BASE_PATH, routes)
         .fallback(get(|| async { Redirect::to(BASE_PATH) })) // TODO: I don't think this is what I want
+        .layer(middleware::from_fn(logging_middleware))
         ;
 
     let app = NormalizePathLayer::trim_trailing_slash().layer(all_routes);
@@ -214,6 +216,18 @@ async fn main() {
         .unwrap();
 }
 
+
+async fn logging_middleware<B>(
+    request: Request<B>,
+    next: Next<B>,
+) -> Response {
+
+    let date = chrono::Local::now();
+    let formated_date = date.format("%Y-%m-%d %H:%M:%S");
+    println!("{}\t{:6}\t{}", formated_date, request.method(), request.uri());
+
+    next.run(request).await
+}
 
 
 async fn create_tables() {

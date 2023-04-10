@@ -16,7 +16,6 @@ Simple reddit-esque social media like website (hopefully)
     - Don't show same posts
 - Display dates
 - Polish and CSS
-- Simple logging
 - Db pool??
 - CLEAN CODE?
     - Or just move on to next project
