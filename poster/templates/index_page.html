@@ -39,7 +39,10 @@ async function getPostDataJson(url) {
 	return data;
 }
 async function renderPostDataJsons() {
-	const url = getUrl();
+	let url = getUrl();
+	if (url.endsWith("//")) {
+		url = url.slice(0, -1);
+	}
 
 	const contentContainer = document.getElementById("contentContainer");
 
