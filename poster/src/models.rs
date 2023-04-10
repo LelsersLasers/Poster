@@ -520,6 +520,35 @@ impl Comment {
                 .unwrap();
         }
     }
+    pub async fn get_vote_value(id: u32, post_id: u32, auth: &AuthContext) -> i32 {
+        
+
+        if auth.current_user.is_some() {
+            let user = auth.current_user.as_ref().unwrap();
+            let account = models::Account::from_user(user).await;
+            let maybe_vote_value = {
+                let db = sql::connect_to_db().await;
+                sqlx::query(sql::GET_COMMENT_VOTE_SQL)
+                    .bind(id)
+                    .bind(post_id)
+                    .bind(account.id)
+                    .map(|row: SqliteRow| {
+                        let vote_value: i32 = row.try_get("vote_value").unwrap();
+                        vote_value
+                    })
+                    .fetch_optional(&db)
+                    .await
+                    .unwrap()
+            };
+            if let Some(vote_value) = maybe_vote_value {
+                vote_value
+            } else {
+                0
+            }
+        } else {
+            -2 // not -1, 0, 1
+        }
+    }
 }
 
 // pub enum PostOrComment {

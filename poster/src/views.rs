@@ -245,13 +245,20 @@ pub async fn upvote_comment(
     }
     let comment = maybe_comment.unwrap();
 
-    if let Some(user) = auth.current_user {
+    if let Some(user) = auth.current_user.clone() {
         let account = models::Account::from_user(&user).await;
 
         let score = models::Comment::vote(comment_id, post_id, account.id, 1).await;
-        return Json(json!({"score": score}));
+        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &auth).await;
+        return Json(json!( {
+            "score": score,
+            "vote_value": vote_value
+        }));
     }
-    Json(json!({"score": comment.score}))
+    Json(json!({
+        "score": comment.score,
+        "vote_value": -2
+    }))
 }
 pub async fn downvote_comment(
     auth: AuthContext,
@@ -264,13 +271,20 @@ pub async fn downvote_comment(
     }
     let comment = maybe_comment.unwrap();
 
-    if let Some(user) = auth.current_user {
+    if let Some(user) = auth.current_user.clone() {
         let account = models::Account::from_user(&user).await;
 
         let score = models::Comment::vote(comment_id, post_id, account.id, -1).await;
-        return Json(json!({"score": score}));
+        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &auth).await;
+        return Json(json!( {
+            "score": score,
+            "vote_value": vote_value
+        }));
     }
-    Json(json!({"score": comment.score}))
+    Json(json!({
+        "score": comment.score,
+        "vote_value": -2
+    }))
 }
 
 

@@ -196,6 +196,13 @@ pub const GET_POST_VOTE_SQL: &str = r#"
     WHERE
         post_id = ? AND account_id = ?
 ;"#;
+pub const GET_COMMENT_VOTE_SQL: &str = r#"
+    SELECT
+        vote AS vote_value
+    FROM comment_votes
+    WHERE
+        comment_id = ? AND post_id = ? AND account_id = ?
+;"#;
 
 pub async fn connect_to_db() -> sqlx::Pool<sqlx::Sqlite> {
     sqlx::SqlitePool::connect(DB_PATH).await.unwrap()

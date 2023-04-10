@@ -9,10 +9,13 @@ function upvoteComment(postId, commentId) {
 	const upvotePath = document.getElementsByName("upvote_path-comment-" + postId + "-" + commentId)[0].value;
 	fetch(upvotePath)
 		.then(response => response.json())
-		.then(data => data['score'])
-		.then(score => {
+		.then(data => {
+			const score = data['score'];
+			const vote_value = data['vote_value'];
 			const scoreElement = document.getElementById("score-" + postId + "-" + commentId);
 			scoreElement.innerHTML = score + " upvotes";
+
+			setCommentButtonStyles(vote_value, commentId);
 		})
 		.catch(error => console.log(error));
 }
@@ -20,12 +23,53 @@ function downvoteComment(postId, commentId) {
 	const downvotePath = document.getElementsByName("downvote_path-comment-" + postId + "-" + commentId)[0].value;
 	fetch(downvotePath)
 		.then(response => response.json())
-		.then(data => data['score'])
-		.then(score => {
+		.then(data => {
+			const score = data['score'];
+			const vote_value = data['vote_value'];
 			const scoreElement = document.getElementById("score-" + postId + "-" + commentId);
 			scoreElement.innerHTML = score + " upvotes";
+
+			setCommentButtonStyles(vote_value, commentId);
 		})
 		.catch(error => console.log(error));
+}
+function setCommentButtonStyles(vote_value, commentId) {
+	const upvoteCommentButton = document.getElementById("commentUpvoteButton-" + commentId);
+	const downvoteCommentButton = document.getElementById("commentDownvoteButton-" + commentId);
+
+	if (vote_value == -2) {
+		upvoteCommentButton.classList.remove("btn-success");
+		upvoteCommentButton.classList.add("btn-outline-success");
+		upvoteCommentButton.disabled = true;
+
+		downvoteCommentButton.classList.remove("btn-danger");
+		downvoteCommentButton.classList.add("btn-outline-danger");
+		downvoteCommentButton.disabled = true;
+	} else if (vote_value == -1) {
+		upvoteCommentButton.classList.remove("btn-success");
+		upvoteCommentButton.classList.add("btn-outline-success");
+		upvoteCommentButton.disabled = false;
+
+		downvoteCommentButton.classList.add("btn-danger");
+		downvoteCommentButton.classList.remove("btn-outline-danger");
+		downvoteCommentButton.disabled = false;
+	} else if (vote_value == 0) {
+		upvoteCommentButton.classList.remove("btn-success");
+		upvoteCommentButton.classList.add("btn-outline-success");
+		upvoteCommentButton.disabled = false;
+
+		downvoteCommentButton.classList.remove("btn-danger");
+		downvoteCommentButton.classList.add("btn-outline-danger");
+		downvoteCommentButton.disabled = false;
+	} else if (vote_value == 1) {
+		upvoteCommentButton.classList.add("btn-success");
+		upvoteCommentButton.classList.remove("btn-outline-success");
+		upvoteCommentButton.disabled = false;
+
+		downvoteCommentButton.classList.remove("btn-danger");
+		downvoteCommentButton.classList.add("btn-outline-danger");
+		downvoteCommentButton.disabled = false;
+	}
 }
 
 
@@ -113,9 +157,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			<input type="hidden" name="downvote_path-comment-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'downvote_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
 
 			<!-- NOTE: syntax errors are okay here, from templating -->
-			<button onclick="upvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Upvote</button>
-			<button onclick="downvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-secondary mb-2">Downvote</button>
-
+			<button id="commentUpvoteButton-{{ comment_tree_node.comment.id }}" onclick="upvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-success mb-2">Upvote</button>
+			<button id="commentDownvoteButton-{{ comment_tree_node.comment.id }}" onclick="downvoteComment({{ post_data.post.id }}, {{ comment_tree_node.comment.id }});" class="btn btn-sm btn-danger mb-2">Downvote</button>
 
 			{% if logged_in %}
 				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
