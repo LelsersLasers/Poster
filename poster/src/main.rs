@@ -76,9 +76,6 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    // initialize tracing
-    tracing_subscriber::fmt::init();
-
     // database
     // let db = sql::connect_to_db().await;
     // let pool = SqlitePoolOptions::new()
@@ -210,7 +207,6 @@ async fn main() {
     let app = NormalizePathLayer::trim_trailing_slash().layer(all_routes);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
-    tracing::debug!("listening on {}", addr);
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

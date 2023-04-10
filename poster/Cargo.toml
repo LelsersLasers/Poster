@@ -24,7 +24,4 @@ rand = { version = "0.8.5", features = ["min_const_gen"] }
 axum-template = { version = "0.14.0", features = ["minijinja"] }
 minijinja = { version = "0.30.7", features = ["source"] }
 
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
 async-recursion = "1.0.4"
