@@ -181,6 +181,13 @@ pub const UPDATE_COMMENT_SCORE_SQL: &str = r#"
     WHERE
         id = ?
 ;"#;
+pub const COMMENT_VOTE_EXISTS_SQL: &str = r#"
+    SELECT
+        COUNT(*) AS count
+    FROM comment_votes
+    WHERE
+        comment_id = ? AND account_id = ? and vote = ?
+;"#;
 //----------------------------------------------------------------------------//
 pub const GET_POST_VOTE_SQL: &str = r#"
     SELECT

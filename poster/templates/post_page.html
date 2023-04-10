@@ -17,8 +17,8 @@ function upvoteComment(postId, commentId) {
 		.catch(error => console.log(error));
 }
 function downvoteComment(postId, commentId) {
-	const upvotePath = document.getElementsByName("downvote_path-comment-" + postId + "-" + commentId)[0].value;
-	fetch(upvotePath)
+	const downvotePath = document.getElementsByName("downvote_path-comment-" + postId + "-" + commentId)[0].value;
+	fetch(downvotePath)
 		.then(response => response.json())
 		.then(data => data['score'])
 		.then(score => {
@@ -29,9 +29,6 @@ function downvoteComment(postId, commentId) {
 }
 
 
-
-
-// TODO:!!!!!!!!!!!
 function upvotePost(postId) {
 	const upvotePath = document.getElementsByName("upvote_path-" + postId)[0].value;
 	fetch(upvotePath)
