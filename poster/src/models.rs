@@ -173,7 +173,7 @@ impl Post {
             account_id,
         }
     }
-    pub async fn add_to_db(&self) {
+    pub async fn add_to_db(&self) -> u32 {
         let db = sql::connect_to_db().await;
         let new_id = sqlx::query(sql::ADD_POST_SQL)
             .bind(&self.title)
@@ -204,6 +204,8 @@ impl Post {
             .execute(&db)
             .await
             .unwrap();
+
+        new_id
     }
     // pub async fn from_id(id: u32) -> Post {
     //     let db = sql::connect_to_db().await;

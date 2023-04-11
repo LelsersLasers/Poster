@@ -162,9 +162,11 @@ pub async fn create_post(
             account.id,
         );
         
-        post.add_to_db().await;
+        let post_id = post.add_to_db().await;
+        Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string()))
+    } else {
+        Redirect::to(BASE_PATH)
     }
-    Redirect::to(BASE_PATH)
 }
 
 
