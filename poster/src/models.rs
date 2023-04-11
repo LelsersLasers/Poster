@@ -1,7 +1,7 @@
 use crate::*;
 
 
-#[derive(Debug, Default, Clone, sqlx::FromRow, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Default, Clone, sqlx::FromRow, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
 pub struct User {
     pub id: String, // database primary key = username
     pub password_hash: String, 
@@ -55,15 +55,15 @@ impl User {
         }
     }
 }
-impl AuthUser for User {
-    fn get_id(&self) -> String {
-        self.id.clone()
-    }
+// impl AuthUser for User {
+//     fn get_id(&self) -> String {
+//         self.id.clone()
+//     }
 
-    fn get_password_hash(&self) -> SecretVec<u8> {
-        SecretVec::new(self.password_hash.clone().into())
-    }
-}
+//     fn get_password_hash(&self) -> SecretVec<u8> {
+//         SecretVec::new(self.password_hash.clone().into())
+//     }
+// }
 
 
 #[derive(Serialize)]
@@ -314,12 +314,15 @@ impl Post {
             .await
             .unwrap()
     }
-    pub async fn into_post_data(self, auth: &AuthContext) -> PostData {
+    pub async fn into_post_data(self,
+        // auth: &AuthContext
+        context_session: &ReadableSession,
+    ) -> PostData {
         let account = models::Account::from_id(self.account_id).await;
         let comment_count = self.count_comments().await;
-        let vote_value = if auth.current_user.is_some() {
-            let user = auth.current_user.as_ref().unwrap();
-            let account = models::Account::from_user(user).await;
+        let vote_value = if let Some(user) = context_session.get::<models::User>("current_user") {
+            // let user = auth.current_user.as_ref().unwrap();
+            let account = models::Account::from_user(&user).await;
             let maybe_vote_value = self.maybe_account_vote(account.id).await;
             if let Some(vote_value) = maybe_vote_value {
                 vote_value
@@ -394,7 +397,11 @@ impl Comment {
             .unwrap()
     }
     #[async_recursion]
-    pub async fn build_comment_tree(self, auth: &AuthContext) -> CommentTreeNode {
+    pub async fn build_comment_tree(
+        self,
+        // auth: &AuthContext
+        context_session: &ReadableSession,
+    ) -> CommentTreeNode {
         let mut children = Vec::new();
         let db = sql::connect_to_db().await;
         let child_comments = sqlx::query(sql::GET_COMMENTS_ON_COMMENT_SQL)
@@ -414,10 +421,10 @@ impl Comment {
             .await
             .unwrap();
         for child_comment in child_comments {
-            children.push(Comment::build_comment_tree(child_comment, auth).await);
+            children.push(Comment::build_comment_tree(child_comment, context_session).await);
         }
         
-        let vote_value = Comment::get_vote_value(self.id, self.post_id, auth).await;
+        let vote_value = Comment::get_vote_value(self.id, self.post_id, context_session).await;
 
         let account = Account::from_id(self.account_id).await;
         CommentTreeNode {
@@ -550,11 +557,13 @@ impl Comment {
             .await
             .unwrap();
     }
-    pub async fn get_vote_value(id: u32, post_id: u32, auth: &AuthContext) -> i32 {
-        
-
-        if auth.current_user.is_some() {
-            let user = auth.current_user.as_ref().unwrap();
+    pub async fn get_vote_value(
+        id: u32, post_id: u32,
+        // auth: &AuthContext
+        context_session: &ReadableSession
+    ) -> i32 {
+        if let Some(user) = &context_session.get::<User>("current_user") {
+            // let user = auth.current_user.as_ref().unwrap();
             let account = models::Account::from_user(user).await;
             let maybe_vote_value = {
                 let db = sql::connect_to_db().await;

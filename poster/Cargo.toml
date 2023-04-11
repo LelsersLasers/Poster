@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.6.11", features = ["macros", "form", "json"] }
-axum-login = { version = "0.4.1", features = ["sqlite"] }
+# axum-login = { version = "0.4.1", features = ["sqlite"] }
 
 tokio = { version = "1.0", features = ["full"] }
 tower = { version = "0.4" }

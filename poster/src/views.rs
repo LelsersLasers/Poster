@@ -1,9 +1,15 @@
 use crate::*;
 
 
-pub async fn logout(mut auth: AuthContext) -> impl IntoResponse {
-    if auth.current_user.is_some() {
-        auth.logout().await;
+pub async fn logout(
+    // mut auth: AuthContext
+    mut context_session: WritableSession,
+) -> impl IntoResponse {
+    // if auth.current_user.is_some() {
+    //     auth.logout().await;
+    // }
+    if context_session.get_raw("current_user").is_some() {
+        context_session.remove("current_user");
     }
 
     Redirect::to(&(BASE_PATH.to_string() + "/"))
@@ -11,14 +17,15 @@ pub async fn logout(mut auth: AuthContext) -> impl IntoResponse {
 
 
 pub async fn attempt_login(
-    auth: &mut AuthContext,
+    // auth: &mut AuthContext,
+    context_session: &mut WritableSession,
     user: &models::User,
 ) -> bool {
-    // NOTE: must always use this over 'auth.login' directly
     let user_exists = user.exists().await;
     if user_exists {
         println!("attempting login");
-        auth.login(user).await.unwrap();
+        // auth.login(user).await.unwrap();
+        context_session.insert("current_user", user).unwrap();
         println!("login successful");
     }
     user_exists
@@ -37,17 +44,17 @@ pub struct LoginForm {
 }
 pub async fn login_user(
     mut context_session: WritableSession,
-    mut auth: AuthContext,
+    // mut auth: AuthContext,
     Form(login_form): Form<LoginForm>,
 ) -> impl IntoResponse {
 
-    if auth.current_user.is_some() {
+    if context_session.get_raw("current_user").is_some() {
         return Redirect::to(BASE_PATH);
     }
 
     let user = models::User::new(login_form.username.clone(), login_form.password.clone());
 
-    let login_result = attempt_login(&mut auth, &user).await; 
+    let login_result = attempt_login(&mut context_session, &user).await; 
     if login_result {
         println!("login successful");
         Redirect::to(BASE_PATH)
@@ -79,11 +86,11 @@ pub struct SignupForm {
 }
 pub async fn signup_handler(
     mut context_session: WritableSession,
-    mut auth: AuthContext,
+    // mut auth: AuthContext,
     Form(signup_form): Form<SignupForm>,
 ) -> impl IntoResponse {
 
-    if auth.current_user.is_some() {
+    if context_session.get_raw("current_user").is_some() {
         return Redirect::to(BASE_PATH);
     }
 
@@ -122,7 +129,7 @@ pub async fn signup_handler(
     account.add_to_db().await;
 
 
-    let _login_result = attempt_login(&mut auth, &user).await; // should always be true
+    let _login_result = attempt_login(&mut context_session, &user).await; // should always be true
     Redirect::to(BASE_PATH)
 }
 
@@ -134,10 +141,11 @@ pub struct CreatePostForm {
     content: String,
 }
 pub async fn create_post(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     Form(signup_form): Form<CreatePostForm>,
 ) -> impl IntoResponse {
-    if let Some(user) = auth.current_user {
+    if let Some(user) = context_session.get::<models::User>("current_user") {
 
         let title = signup_form.title.trim().to_string();
         let content = signup_form.content.trim().to_string();
@@ -163,9 +171,10 @@ pub async fn create_post(
 pub async fn create_post_page(
     engine: AppEngine,
     Key(key): Key,
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession
 ) -> impl IntoResponse {
-    if auth.current_user.is_none() {
+    if context_session.get_raw("current_user").is_none() {
         Redirect::to(BASE_PATH).into_response().into_response()
     } else {
         RenderHtml(key, engine, ()).into_response()
@@ -189,10 +198,10 @@ pub async fn signup_page(
     context_session: ReadableSession,
     engine: AppEngine,
     Key(key): Key,
-    auth: AuthContext,
+    // auth: AuthContext,
 ) -> impl IntoResponse {
 
-    if auth.current_user.is_some() {
+    if context_session.get_raw("current_user").is_some() {
         Redirect::to(BASE_PATH).into_response().into_response()
     } else {
         let signup_context = context_session.get::<SignupContext>("signup_context").unwrap_or(SignupContext {
@@ -210,10 +219,10 @@ pub async fn login_page(
     context_session: ReadableSession,
     engine: AppEngine,
     Key(key): Key,
-    auth: AuthContext,
+    // auth: AuthContext,
 ) -> impl IntoResponse {
 
-    if auth.current_user.is_some() {
+    if context_session.get_raw("current_user").is_some() {
         Redirect::to(BASE_PATH).into_response().into_response()
     } else {
         let login_context = context_session.get::<LoginContext>("login_context").unwrap_or(LoginContext {
@@ -231,7 +240,8 @@ pub struct AddCommentForm {
     content: String,
 }
 pub async fn add_comment_to_post(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     Path(post_id): Path<u32>,
     Form(add_comment_form): Form<AddCommentForm>,
 ) -> impl IntoResponse {
@@ -240,7 +250,7 @@ pub async fn add_comment_to_post(
         return Redirect::to(BASE_PATH).into_response();
     }
 
-    if let Some(user) = auth.current_user {
+    if let Some(user) = context_session.get::<models::User>("current_user") {
         let account = models::Account::from_user(&user).await;
 
         let content = add_comment_form.content.trim().to_string();
@@ -258,7 +268,8 @@ pub async fn add_comment_to_post(
     Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response()
 }
 pub async fn add_comment_to_comment(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
     Form(add_comment_form): Form<AddCommentForm>,
 ) -> impl IntoResponse {
@@ -272,7 +283,7 @@ pub async fn add_comment_to_comment(
         return Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response();
     }
 
-    if let Some(user) = auth.current_user {
+    if let Some(user) = context_session.get::<models::User>("current_user") {
         let account = models::Account::from_user(&user).await;
 
         let content = add_comment_form.content.trim().to_string();
@@ -292,7 +303,8 @@ pub async fn add_comment_to_comment(
 
 
 pub async fn upvote_post(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     Path(post_id): Path<u32>,
 ) -> Json<Option<models::PostData>> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -301,20 +313,21 @@ pub async fn upvote_post(
     }
     let unchanged_post = maybe_post.unwrap();
 
-    if let Some(user) = &auth.current_user {
+    if let Some(user) = &context_session.get::<models::User>("current_user") {
         let account = models::Account::from_user(user).await;
 
         models::Post::vote(post_id, account.id, 1).await;
         let post = models::Post::maybe_from_id(post_id).await.unwrap();
-        let post_data = post.into_post_data(&auth).await;
+        let post_data = post.into_post_data(&context_session).await;
         return Json(Some(post_data));
     }
 
-    let post_data = unchanged_post.into_post_data(&auth).await;
+    let post_data = unchanged_post.into_post_data(&context_session).await;
     Json(Some(post_data))
 }
 pub async fn downvote_post(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     Path(post_id): Path<u32>,
 ) -> Json<Option<models::PostData>> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -323,21 +336,22 @@ pub async fn downvote_post(
     }
     let unchanged_post = maybe_post.unwrap();
 
-    if let Some(user) = &auth.current_user {
+    if let Some(user) = &context_session.get::<models::User>("current_user") {
         let account = models::Account::from_user(user).await;
 
         models::Post::vote(post_id, account.id, -1).await;
         let post = models::Post::maybe_from_id(post_id).await.unwrap();
-        let post_data = post.into_post_data(&auth).await;
+        let post_data = post.into_post_data(&context_session).await;
         return Json(Some(post_data));
     }
 
-    let post_data = unchanged_post.into_post_data(&auth).await;
+    let post_data = unchanged_post.into_post_data(&context_session).await;
     Json(Some(post_data))
 }
 
 pub async fn upvote_comment(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
 ) -> Json<Value> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -347,11 +361,11 @@ pub async fn upvote_comment(
     }
     let comment = maybe_comment.unwrap();
 
-    if let Some(user) = auth.current_user.clone() {
+    if let Some(user) = context_session.get::<models::User>("current_user") {
         let account = models::Account::from_user(&user).await;
 
         let score = models::Comment::vote(comment_id, post_id, account.id, 1).await;
-        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &auth).await;
+        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &context_session).await;
         return Json(json!( {
             "score": score,
             "vote_value": vote_value
@@ -363,7 +377,8 @@ pub async fn upvote_comment(
     }))
 }
 pub async fn downvote_comment(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
 ) -> Json<Value> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -373,11 +388,11 @@ pub async fn downvote_comment(
     }
     let comment = maybe_comment.unwrap();
 
-    if let Some(user) = auth.current_user.clone() {
+    if let Some(user) = context_session.get::<models::User>("current_user") {
         let account = models::Account::from_user(&user).await;
 
         let score = models::Comment::vote(comment_id, post_id, account.id, -1).await;
-        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &auth).await;
+        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &context_session).await;
         return Json(json!( {
             "score": score,
             "vote_value": vote_value
@@ -392,7 +407,8 @@ pub async fn downvote_comment(
 
 
 pub async fn post_page(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     engine: AppEngine,
     Key(key): Key,
     Path(post_id): Path<u32>,
@@ -415,16 +431,16 @@ pub async fn post_page(
         
         let mut comment_tree_nodes = Vec::new();
         for comment in comments {
-            let comment_tree_node = models::Comment::build_comment_tree(comment, &auth).await;
+            let comment_tree_node = models::Comment::build_comment_tree(comment, &context_session).await;
             comment_tree_nodes.push(comment_tree_node);
         }
 
-        let post_data = post.into_post_data(&auth).await;
+        let post_data = post.into_post_data(&context_session).await;
 
 
         let data = PostPageData {
             post_data,
-            logged_in: auth.current_user.is_some(),
+            logged_in: context_session.get_raw("current_user").is_some(),
             comment_tree_nodes,
         };
         
@@ -437,7 +453,8 @@ pub async fn post_page(
 
 
 pub async fn get_posts(
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
 ) -> Json<Vec<models::PostData>> {
     let mut post_datas = Vec::new();
     
@@ -476,7 +493,7 @@ pub async fn get_posts(
 
     while let Some(row) = stream.next().await {
         let post = row.unwrap();
-        let post_data = post.into_post_data(&auth).await;
+        let post_data = post.into_post_data(&context_session).await;
         post_datas.push(post_data);
     }
 
@@ -484,7 +501,8 @@ pub async fn get_posts(
 }
 pub async fn root(
     // State(pool): State<SqlitePool>
-    auth: AuthContext,
+    // auth: AuthContext,
+    context_session: ReadableSession,
     engine: AppEngine,
     Key(key): Key,
  ) ->  impl IntoResponse {
@@ -495,7 +513,7 @@ pub async fn root(
     }
 
     let data = IndexData {
-        logged_in: auth.current_user.is_some(),
+        logged_in: context_session.get_raw("current_user").is_some(),
     };
 
     RenderHtml(key, engine, data)

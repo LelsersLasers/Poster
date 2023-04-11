@@ -16,12 +16,12 @@ use tower_http::normalize_path::NormalizePathLayer;
 use serde_json::{Value, json};
 
 
-use axum_login::{
-    secrecy::SecretVec,
-    AuthLayer,
-    AuthUser,
-    SqliteStore,
-};
+// use axum_login::{
+//     secrecy::SecretVec,
+//     AuthLayer,
+//     AuthUser,
+//     SqliteStore,
+// };
 
 use axum_sessions::{
     async_session::MemoryStore,
@@ -30,7 +30,7 @@ use axum_sessions::{
 };
 
 use rand::Rng;
-type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
+// type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
 
 
 use axum_template::{engine::Engine, Key, RenderHtml};
@@ -43,7 +43,10 @@ use std::net::SocketAddr;
 
 use futures_util::StreamExt;
 use sqlx::{
-    sqlite::{SqlitePoolOptions, SqliteRow},
+    sqlite::{
+        // SqlitePoolOptions,
+        SqliteRow
+    },
     Row,
     // SqlitePool,
 };
@@ -90,15 +93,15 @@ async fn main() {
     //     .await
     //     .unwrap();
 
-    let login_secret = rand::thread_rng().gen::<[u8; 64]>();
-    let log_session_store = MemoryStore::new();
-    let login_session_layer = SessionLayer::new(log_session_store, &login_secret).with_secure(false);
-    let pool = SqlitePoolOptions::new()
-        .connect(DB_PATH)
-        .await
-        .unwrap();
-    let login_user_store = SqliteStore::<models::User>::new(pool);
-    let login_auth_layer = AuthLayer::new(login_user_store, &login_secret);
+    // let login_secret = rand::thread_rng().gen::<[u8; 64]>();
+    // let log_session_store = MemoryStore::new();
+    // let login_session_layer = SessionLayer::new(log_session_store, &login_secret).with_secure(false);
+    // let pool = SqlitePoolOptions::new()
+    //     .connect(DB_PATH)
+    //     .await
+    //     .unwrap();
+    // let login_user_store = SqliteStore::<models::User>::new(pool);
+    // let login_auth_layer = AuthLayer::new(login_user_store, &login_secret);
 
     let context_store = MemoryStore::new();
     let context_secret = rand::thread_rng().gen::<[u8; 128]>();
@@ -197,8 +200,8 @@ async fn main() {
         .route("/upvote_comment/:post_id/:comment_id", get(views::upvote_comment)) // if logged in
         .route("/downvote_comment/:post_id/:comment_id", get(views::downvote_comment)) // if logged in
         
-        .layer(login_auth_layer)
-        .layer(login_session_layer)
+        // .layer(login_auth_layer)
+        // .layer(login_session_layer)
         .layer(context_session_layer)
         .with_state(AppState { engine })
         ;
