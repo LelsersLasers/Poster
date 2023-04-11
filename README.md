@@ -6,6 +6,7 @@ Simple reddit-esque social media like website (hopefully)
 
 - Redirect "/" ("") to "/poster"
 - On signup/login redirect to where they were before
+    - Same with back button
 - Login/signup page has feedback on failed login/signup
 - Infinite scroll on main page
     - Sort by time, score (within last 24 hours, week, month, year, all time)

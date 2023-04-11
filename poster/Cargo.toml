@@ -19,6 +19,8 @@ serde_json = "1.0.68"
 sqlx = { version = "0.6.2", features = ["macros", "sqlite", "runtime-tokio-rustls"] }
 futures-util = "0.3.27"
 
+axum-sessions = "0.5.0"
+
 axum-template = { version = "0.14.0", features = ["minijinja"] }
 minijinja = { version = "0.30.7", features = ["source"] }
 

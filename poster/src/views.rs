@@ -17,17 +17,26 @@ pub async fn attempt_login(
     // NOTE: must always use this over 'auth.login' directly
     let user_exists = user.exists().await;
     if user_exists {
+        println!("attempting login");
         auth.login(user).await.unwrap();
+        println!("login successful");
     }
     user_exists
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct LoginContext {
+    error: String,
+    attempted_username: String,
+    attempted_password: String,
+}
 #[derive(Deserialize)]
 pub struct LoginForm {
     username: String,
     password: String,
 }
 pub async fn login_user(
+    mut context_session: WritableSession,
     mut auth: AuthContext,
     Form(login_form): Form<LoginForm>,
 ) -> impl IntoResponse {
@@ -36,16 +45,31 @@ pub async fn login_user(
         return Redirect::to(BASE_PATH);
     }
 
-    let user = models::User::new(login_form.username, login_form.password);
+    let user = models::User::new(login_form.username.clone(), login_form.password.clone());
 
     let login_result = attempt_login(&mut auth, &user).await; 
     if login_result {
+        println!("login successful");
         Redirect::to(BASE_PATH)
     } else {
+        let login_context = LoginContext {
+            error: "Invalid username or password".to_string(),
+            attempted_username: login_form.username,
+            attempted_password: login_form.password,
+        };
+        context_session.insert("login_context", login_context).unwrap();
         Redirect::to(&(BASE_PATH.to_string() + "/login_page"))
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct SignupContext {
+    error: String,
+    attempted_display_name: String,
+    attempted_username: String,
+    attempted_password1: String,
+    attempted_password2: String,
+}
 #[derive(Deserialize)]
 pub struct SignupForm {
     display_name: String,
@@ -54,6 +78,7 @@ pub struct SignupForm {
     password2: String,
 }
 pub async fn signup_handler(
+    mut context_session: WritableSession,
     mut auth: AuthContext,
     Form(signup_form): Form<SignupForm>,
 ) -> impl IntoResponse {
@@ -62,17 +87,31 @@ pub async fn signup_handler(
         return Redirect::to(BASE_PATH);
     }
 
+    let mut signup_context = SignupContext {
+        error: "".to_string(),
+        attempted_display_name: signup_form.display_name.clone(),
+        attempted_username: signup_form.username.clone(),
+        attempted_password1: signup_form.password1.clone(),
+        attempted_password2: signup_form.password2.clone(),
+    };
+
     if signup_form.password1 != signup_form.password2 {
+        signup_context.error = "Passwords do not match".to_string();
+        context_session.insert("signup_context", signup_context).unwrap();
         return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
     let unique_username = !models::User::username_exists(&signup_form.username).await;
     if !unique_username {
+        signup_context.error = "Username already exists".to_string();
+        context_session.insert("signup_context", signup_context).unwrap();
         return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
     let unique_display_name = !models::Account::display_name_exists(&signup_form.display_name).await;
     if !unique_display_name {
+        signup_context.error = "Display name already exists".to_string();
+        context_session.insert("signup_context", signup_context).unwrap();
         return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
@@ -83,12 +122,8 @@ pub async fn signup_handler(
     account.add_to_db().await;
 
 
-    let login_result = attempt_login(&mut auth, &user).await; 
-    if login_result {
-        Redirect::to(BASE_PATH)
-    } else {
-        Redirect::to(&(BASE_PATH.to_string() + "/signup_page"))
-    }
+    let _login_result = attempt_login(&mut auth, &user).await; // should always be true
+    Redirect::to(BASE_PATH)
 }
 
 
@@ -137,20 +172,7 @@ pub async fn create_post_page(
     }
 }
 
-pub async fn user_auth_page(
-    engine: AppEngine,
-    Key(key): Key,
-    auth: AuthContext,
-) -> impl IntoResponse {
-
-    if auth.current_user.is_some() {
-        Redirect::to(BASE_PATH).into_response().into_response()
-    } else {
-        RenderHtml(key, engine, ()).into_response()
-    }
-}
-
-// pub async fn login_page(
+// pub async fn user_auth_page(
 //     engine: AppEngine,
 //     Key(key): Key,
 //     auth: AuthContext,
@@ -162,6 +184,46 @@ pub async fn user_auth_page(
 //         RenderHtml(key, engine, ()).into_response()
 //     }
 // }
+
+pub async fn signup_page(
+    context_session: ReadableSession,
+    engine: AppEngine,
+    Key(key): Key,
+    auth: AuthContext,
+) -> impl IntoResponse {
+
+    if auth.current_user.is_some() {
+        Redirect::to(BASE_PATH).into_response().into_response()
+    } else {
+        let signup_context = context_session.get::<SignupContext>("signup_context").unwrap_or(SignupContext {
+            error: "".to_string(),
+            attempted_display_name: "".to_string(),
+            attempted_username: "".to_string(),
+            attempted_password1: "".to_string(),
+            attempted_password2: "".to_string(),
+        });
+        RenderHtml(key, engine, signup_context).into_response()
+    }
+}
+
+pub async fn login_page(
+    context_session: ReadableSession,
+    engine: AppEngine,
+    Key(key): Key,
+    auth: AuthContext,
+) -> impl IntoResponse {
+
+    if auth.current_user.is_some() {
+        Redirect::to(BASE_PATH).into_response().into_response()
+    } else {
+        let login_context = context_session.get::<LoginContext>("login_context").unwrap_or(LoginContext {
+            error: "".to_string(),
+            attempted_username: "".to_string(),
+            attempted_password: "".to_string(),
+        });
+        RenderHtml(key, engine, login_context).into_response()
+    }
+}
 
 
 #[derive(Deserialize)]

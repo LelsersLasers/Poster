@@ -17,13 +17,18 @@ use serde_json::{Value, json};
 
 
 use axum_login::{
-    axum_sessions::{async_session::MemoryStore, SessionLayer},
     secrecy::SecretVec,
     AuthLayer,
     AuthUser,
-    // RequireAuthorizationLayer,
     SqliteStore,
 };
+
+use axum_sessions::{
+    async_session::MemoryStore,
+    extractors::{ReadableSession, WritableSession},
+    SessionLayer,
+};
+
 use rand::Rng;
 type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
 
@@ -85,15 +90,19 @@ async fn main() {
     //     .await
     //     .unwrap();
 
-    let secret = rand::thread_rng().gen::<[u8; 64]>();
-    let session_store = MemoryStore::new();
-    let session_layer = SessionLayer::new(session_store, &secret).with_secure(false);
+    let login_secret = rand::thread_rng().gen::<[u8; 64]>();
+    let log_session_store = MemoryStore::new();
+    let login_session_layer = SessionLayer::new(log_session_store, &login_secret).with_secure(false);
     let pool = SqlitePoolOptions::new()
         .connect(DB_PATH)
         .await
         .unwrap();
-    let user_store = SqliteStore::<models::User>::new(pool);
-    let auth_layer = AuthLayer::new(user_store, &secret);
+    let login_user_store = SqliteStore::<models::User>::new(pool);
+    let login_auth_layer = AuthLayer::new(login_user_store, &login_secret);
+
+    let context_store = MemoryStore::new();
+    let context_secret = rand::thread_rng().gen::<[u8; 128]>();
+    let context_session_layer = SessionLayer::new(context_store, &context_secret).with_secure(false);
 
 
     create_tables().await;
@@ -162,8 +171,8 @@ async fn main() {
         .route("/get_posts", get(views::get_posts)) // all
 
         
-        .route("/login_page", get(views::user_auth_page)) // if not logged in
-        .route("/signup_page", get(views::user_auth_page)) // if not logged in
+        .route("/login_page", get(views::login_page)) // if not logged in
+        .route("/signup_page", get(views::signup_page)) // if not logged in
 
         .route("/login_user", post(views::login_user)) // if not logged in
         .route("/signup_handler", post(views::signup_handler)) // if not logged in
@@ -188,8 +197,9 @@ async fn main() {
         .route("/upvote_comment/:post_id/:comment_id", get(views::upvote_comment)) // if logged in
         .route("/downvote_comment/:post_id/:comment_id", get(views::downvote_comment)) // if logged in
         
-        .layer(auth_layer)
-        .layer(session_layer)
+        .layer(login_auth_layer)
+        .layer(login_session_layer)
+        .layer(context_session_layer)
         .with_state(AppState { engine })
         ;
         // .with_state(pool);

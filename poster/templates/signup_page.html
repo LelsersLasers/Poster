@@ -12,10 +12,16 @@
     
   	    <h1 class="h3 mb-3 font-weight-normal">Sign Up</h1>
 
-  		  <input type="text" id="display_name" name="display_name" class="form-control top-input" placeholder="Display Name" required="" autofocus="">
-  		  <input type="text" id="username" name="username" class="form-control middle-input" placeholder="Username" required="">
-  		  <input type="password" id="password1" name="password1" class="form-control middle-input" placeholder="Password" required="">
-  		  <input type="password" id="password2" name="password2" class="form-control bottom-input" placeholder="Confirm Password" required="">
+  		  <input type="text" id="display_name" name="display_name" class="form-control top-input" placeholder="Display Name" required="" autofocus="" value="{{ attempted_display_name }}">
+  		  <input type="text" id="username" name="username" class="form-control middle-input" placeholder="Username" required="" value="{{ attempted_username }}">
+  		  <input type="password" id="password1" name="password1" class="form-control middle-input" placeholder="Password" required="" value="{{ attempted_password1 }}">
+  		  <input type="password" id="password2" name="password2" class="form-control bottom-input" placeholder="Confirm Password" required="" value="{{ attempted_password2 }}">
+
+          {% if error %}
+            <div class="bg-danger rounded-lg text-white mb-2">
+              {{ error }}
+            </div>
+          {% endif %}
 
   		  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
 
