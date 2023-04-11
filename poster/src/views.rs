@@ -357,7 +357,10 @@ pub async fn upvote_comment(
     let maybe_post = models::Post::maybe_from_id(post_id).await;
     let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
     if maybe_post.is_none() || maybe_comment.is_none() {
-        return Json(json!({"score": -1}));
+        return Json(json!({
+            "score": -1,
+            "vote_value": -2
+        }));
     }
     let comment = maybe_comment.unwrap();
 
@@ -384,7 +387,10 @@ pub async fn downvote_comment(
     let maybe_post = models::Post::maybe_from_id(post_id).await;
     let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
     if maybe_post.is_none() || maybe_comment.is_none() {
-        return Json(json!({"score": -1}));
+        return Json(json!({
+            "score": -1,
+            "vote_value": -2
+        }));
     }
     let comment = maybe_comment.unwrap();
 
