@@ -103,9 +103,9 @@ async fn main() {
     // let login_user_store = SqliteStore::<models::User>::new(pool);
     // let login_auth_layer = AuthLayer::new(login_user_store, &login_secret);
 
-    let context_store = MemoryStore::new();
-    let context_secret = rand::thread_rng().gen::<[u8; 128]>();
-    let context_session_layer = SessionLayer::new(context_store, &context_secret).with_secure(false);
+    let store = MemoryStore::new();
+    let secret = rand::thread_rng().gen::<[u8; 128]>();
+    let session_layer = SessionLayer::new(store, &secret).with_secure(false);
 
 
     create_tables().await;
@@ -202,7 +202,7 @@ async fn main() {
         
         // .layer(login_auth_layer)
         // .layer(login_session_layer)
-        .layer(context_session_layer)
+        .layer(session_layer)
         .with_state(AppState { engine })
         ;
         // .with_state(pool);

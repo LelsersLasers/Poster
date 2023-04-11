@@ -318,11 +318,11 @@ impl Post {
     }
     pub async fn into_post_data(self,
         // auth: &AuthContext
-        context_session: &ReadableSession,
+        session: &ReadableSession,
     ) -> PostData {
         let account = models::Account::from_id(self.account_id).await;
         let comment_count = self.count_comments().await;
-        let vote_value = if let Some(user) = context_session.get::<models::User>("current_user") {
+        let vote_value = if let Some(user) = session.get::<models::User>("current_user") {
             // let user = auth.current_user.as_ref().unwrap();
             let account = models::Account::from_user(&user).await;
             let maybe_vote_value = self.maybe_account_vote(account.id).await;
@@ -402,7 +402,7 @@ impl Comment {
     pub async fn build_comment_tree(
         self,
         // auth: &AuthContext
-        context_session: &ReadableSession,
+        session: &ReadableSession,
     ) -> CommentTreeNode {
         let mut children = Vec::new();
         let db = sql::connect_to_db().await;
@@ -423,10 +423,10 @@ impl Comment {
             .await
             .unwrap();
         for child_comment in child_comments {
-            children.push(Comment::build_comment_tree(child_comment, context_session).await);
+            children.push(Comment::build_comment_tree(child_comment, session).await);
         }
         
-        let vote_value = Comment::get_vote_value(self.id, self.post_id, context_session).await;
+        let vote_value = Comment::get_vote_value(self.id, self.post_id, session).await;
 
         let account = Account::from_id(self.account_id).await;
         CommentTreeNode {
@@ -562,9 +562,9 @@ impl Comment {
     pub async fn get_vote_value(
         id: u32, post_id: u32,
         // auth: &AuthContext
-        context_session: &ReadableSession
+        session: &ReadableSession
     ) -> i32 {
-        if let Some(user) = &context_session.get::<User>("current_user") {
+        if let Some(user) = &session.get::<User>("current_user") {
             // let user = auth.current_user.as_ref().unwrap();
             let account = models::Account::from_user(user).await;
             let maybe_vote_value = {
