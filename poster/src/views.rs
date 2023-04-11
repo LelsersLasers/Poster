@@ -32,6 +32,10 @@ pub async fn login_user(
     Form(login_form): Form<LoginForm>,
 ) -> impl IntoResponse {
 
+    if auth.current_user.is_some() {
+        return Redirect::to(BASE_PATH);
+    }
+
     let user = models::User::new(login_form.username, login_form.password);
 
     let login_result = attempt_login(&mut auth, &user).await; 
@@ -53,6 +57,10 @@ pub async fn signup_handler(
     mut auth: AuthContext,
     Form(signup_form): Form<SignupForm>,
 ) -> impl IntoResponse {
+
+    if auth.current_user.is_some() {
+        return Redirect::to(BASE_PATH);
+    }
 
     if signup_form.password1 != signup_form.password2 {
         return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
@@ -141,6 +149,19 @@ pub async fn user_auth_page(
         RenderHtml(key, engine, ()).into_response()
     }
 }
+
+// pub async fn login_page(
+//     engine: AppEngine,
+//     Key(key): Key,
+//     auth: AuthContext,
+// ) -> impl IntoResponse {
+
+//     if auth.current_user.is_some() {
+//         Redirect::to(BASE_PATH).into_response().into_response()
+//     } else {
+//         RenderHtml(key, engine, ()).into_response()
+//     }
+// }
 
 
 #[derive(Deserialize)]

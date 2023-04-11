@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.6.11", features = ["macros", "form", "json"] }
+axum-login = { version = "0.4.1", features = ["sqlite"] }
+
 tokio = { version = "1.0", features = ["full"] }
 tower = { version = "0.4" }
 tower-http = { version = "0.3", features = ["normalize-path"] }
@@ -14,16 +16,12 @@ tower-http = { version = "0.3", features = ["normalize-path"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.68"
 
-# rusqlite = { version = "0.28.0", features = ["bundled"]}
 sqlx = { version = "0.6.2", features = ["macros", "sqlite", "runtime-tokio-rustls"] }
 futures-util = "0.3.27"
-
-axum-login = { version = "0.4.1", features = ["sqlite"] }
-rand = { version = "0.8.5", features = ["min_const_gen"] }
 
 axum-template = { version = "0.14.0", features = ["minijinja"] }
 minijinja = { version = "0.30.7", features = ["source"] }
 
+rand = { version = "0.8.5", features = ["min_const_gen"] }
 async-recursion = "1.0.4"
-
 chrono = "0.4.24"

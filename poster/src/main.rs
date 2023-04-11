@@ -165,8 +165,8 @@ async fn main() {
         .route("/login_page", get(views::user_auth_page)) // if not logged in
         .route("/signup_page", get(views::user_auth_page)) // if not logged in
 
-        .route("/login_user", post(views::login_user)) // all
-        .route("/signup_handler", post(views::signup_handler)) // all
+        .route("/login_user", post(views::login_user)) // if not logged in
+        .route("/signup_handler", post(views::signup_handler)) // if not logged in
 
         .route("/logout", get(views::logout)) // if logged in
 
