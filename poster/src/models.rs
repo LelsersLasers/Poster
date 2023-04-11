@@ -1,7 +1,7 @@
 use crate::*;
 
 
-#[derive(Debug, Default, Clone, sqlx::FromRow, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct User {
     pub id: String, // database primary key = username
     pub password_hash: String, 
