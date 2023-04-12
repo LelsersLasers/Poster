@@ -66,9 +66,7 @@ a {
 {% block body %}
 		<div class="text-center">
         {% block mainForm %}
-      		  <button type="button" class="btn btn-light btn-sm mt-1" onclick="history.back()">
-                Back
-            </button>
+            <a class="btn btn-light btn-sm mt-1" href="{{ basePath ~ '/back' }}" role="button">Back</a>
         {% endblock %}
 	</div>
 

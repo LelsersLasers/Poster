@@ -318,7 +318,7 @@ impl Post {
     }
     pub async fn into_post_data(self,
         // auth: &AuthContext
-        session: &ReadableSession,
+        session: &WritableSession,
     ) -> PostData {
         let account = models::Account::from_id(self.account_id).await;
         let comment_count = self.count_comments().await;
@@ -402,7 +402,7 @@ impl Comment {
     pub async fn build_comment_tree(
         self,
         // auth: &AuthContext
-        session: &ReadableSession,
+        session: &WritableSession,
     ) -> CommentTreeNode {
         let mut children = Vec::new();
         let db = sql::connect_to_db().await;
@@ -562,7 +562,7 @@ impl Comment {
     pub async fn get_vote_value(
         id: u32, post_id: u32,
         // auth: &AuthContext
-        session: &ReadableSession
+        session: &WritableSession
     ) -> i32 {
         if let Some(user) = &session.get::<User>("current_user") {
             // let user = auth.current_user.as_ref().unwrap();

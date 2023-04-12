@@ -25,7 +25,7 @@ use serde_json::{Value, json};
 
 use axum_sessions::{
     async_session::MemoryStore,
-    extractors::{ReadableSession, WritableSession},
+    extractors::WritableSession,
     SessionLayer,
 };
 
@@ -177,7 +177,7 @@ async fn main() {
         .route("/login_page", get(views::login_page)) // if not logged in
         .route("/signup_page", get(views::signup_page)) // if not logged in
 
-        .route("/login_user", post(views::login_user)) // if not logged in
+        .route("/login_handler", post(views::login_handler)) // if not logged in
         .route("/signup_handler", post(views::signup_handler)) // if not logged in
 
         .route("/logout", get(views::logout)) // if logged in
@@ -199,6 +199,8 @@ async fn main() {
 
         .route("/upvote_comment/:post_id/:comment_id", get(views::upvote_comment)) // if logged in
         .route("/downvote_comment/:post_id/:comment_id", get(views::downvote_comment)) // if logged in
+
+        .route("/back", get(views::back)) // all
         
         // .layer(login_auth_layer)
         // .layer(login_session_layer)

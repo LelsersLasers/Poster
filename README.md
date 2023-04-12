@@ -5,8 +5,6 @@ Simple reddit-esque social media like website (hopefully)
 ## TODO
 
 - Redirect "/" ("") to "/poster"
-- On signup/login redirect to where they were before
-    - Same with back button
 - Infinite scroll on main page
     - Sort by time, score (within last 24 hours, week, month, year, all time)
     - Don't show same posts

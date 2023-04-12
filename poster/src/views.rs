@@ -41,7 +41,7 @@ pub struct LoginForm {
     username: String,
     password: String,
 }
-pub async fn login_user(
+pub async fn login_handler(
     mut session: WritableSession,
     // mut auth: AuthContext,
     Form(login_form): Form<LoginForm>,
@@ -55,7 +55,7 @@ pub async fn login_user(
 
     let login_result = attempt_login(&mut session, &user).await; 
     if login_result {
-        Redirect::to(BASE_PATH)
+        Redirect::to(&(BASE_PATH.to_string() + "/back"))
     } else {
         let login_context = LoginContext {
             error: "Invalid username or password".to_string(),
@@ -128,7 +128,7 @@ pub async fn signup_handler(
 
 
     let _login_result = attempt_login(&mut session, &user).await; // should always be true
-    Redirect::to(BASE_PATH)
+    Redirect::to(&(BASE_PATH.to_string() + "/back"))
 }
 
 
@@ -140,7 +140,7 @@ pub struct CreatePostForm {
 }
 pub async fn create_post(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
     Form(signup_form): Form<CreatePostForm>,
 ) -> impl IntoResponse {
     if let Some(user) = session.get::<models::User>("current_user") {
@@ -172,7 +172,7 @@ pub async fn create_post_page(
     engine: AppEngine,
     Key(key): Key,
     // auth: AuthContext,
-    session: ReadableSession
+    session: WritableSession
 ) -> impl IntoResponse {
     if session.get_raw("current_user").is_none() {
         Redirect::to(BASE_PATH).into_response().into_response()
@@ -195,7 +195,7 @@ pub async fn create_post_page(
 // }
 
 pub async fn signup_page(
-    session: ReadableSession,
+    session: WritableSession,
     engine: AppEngine,
     Key(key): Key,
     // auth: AuthContext,
@@ -216,7 +216,7 @@ pub async fn signup_page(
 }
 
 pub async fn login_page(
-    session: ReadableSession,
+    session: WritableSession,
     engine: AppEngine,
     Key(key): Key,
     // auth: AuthContext,
@@ -241,7 +241,7 @@ pub struct AddCommentForm {
 }
 pub async fn add_comment_to_post(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
     Path(post_id): Path<u32>,
     Form(add_comment_form): Form<AddCommentForm>,
 ) -> impl IntoResponse {
@@ -269,7 +269,7 @@ pub async fn add_comment_to_post(
 }
 pub async fn add_comment_to_comment(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
     Form(add_comment_form): Form<AddCommentForm>,
 ) -> impl IntoResponse {
@@ -304,7 +304,7 @@ pub async fn add_comment_to_comment(
 
 pub async fn upvote_post(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
     Path(post_id): Path<u32>,
 ) -> Json<Option<models::PostData>> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -327,7 +327,7 @@ pub async fn upvote_post(
 }
 pub async fn downvote_post(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
     Path(post_id): Path<u32>,
 ) -> Json<Option<models::PostData>> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -351,7 +351,7 @@ pub async fn downvote_post(
 
 pub async fn upvote_comment(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
 ) -> Json<Value> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -381,7 +381,7 @@ pub async fn upvote_comment(
 }
 pub async fn downvote_comment(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
 ) -> Json<Value> {
     let maybe_post = models::Post::maybe_from_id(post_id).await;
@@ -414,7 +414,7 @@ pub async fn downvote_comment(
 
 pub async fn post_page(
     // auth: AuthContext,
-    session: ReadableSession,
+    mut session: WritableSession,
     engine: AppEngine,
     Key(key): Key,
     Path(post_id): Path<u32>,
@@ -449,6 +449,8 @@ pub async fn post_page(
             logged_in: session.get_raw("current_user").is_some(),
             comment_tree_nodes,
         };
+
+        session.insert("back_url", "/post/".to_string() + &post_id.to_string()).unwrap();
         
         RenderHtml(key, engine, data).into_response()
     } else {
@@ -460,7 +462,7 @@ pub async fn post_page(
 
 pub async fn get_posts(
     // auth: AuthContext,
-    session: ReadableSession,
+    session: WritableSession,
 ) -> Json<Vec<models::PostData>> {
     let mut post_datas = Vec::new();
     
@@ -508,7 +510,7 @@ pub async fn get_posts(
 pub async fn root(
     // State(pool): State<SqlitePool>
     // auth: AuthContext,
-    session: ReadableSession,
+    mut session: WritableSession,
     engine: AppEngine,
     Key(key): Key,
  ) ->  impl IntoResponse {
@@ -522,5 +524,19 @@ pub async fn root(
         logged_in: session.get_raw("current_user").is_some(),
     };
 
+    session.insert("back_url", "").unwrap();
+
     RenderHtml(key, engine, data)
 }
+
+
+pub async fn back(
+    session: WritableSession,
+) -> Redirect {
+    if let Some(back_url) = session.get::<String>("back_url") {
+        Redirect::to(&(BASE_PATH.to_string() + &back_url))
+    } else {
+        Redirect::to(BASE_PATH)
+    }
+}
+
