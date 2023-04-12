@@ -3,9 +3,9 @@ use crate::*;
 
 pub async fn logout(
     mut session: WritableSession,
-) -> impl IntoResponse {
-    session.destroy();
     Redirect::to(&(BASE_PATH.to_string() + "/"))
+) -> impl IntoResponse {    
+    session.remove("current_user");
 }
 
 
