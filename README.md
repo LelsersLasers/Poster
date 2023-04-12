@@ -12,6 +12,7 @@ Simple reddit-esque social media like website (hopefully)
     - Don't show same posts
 - Display dates
 - Polish and CSS
+    - Usable on multiple screen sizes, resolutions, and mobile
 - Db pool instead of sql::connect_to_db() in every function
 - CLEAN CODE?
     - Or just move on to next project
