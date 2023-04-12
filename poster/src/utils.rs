@@ -24,3 +24,10 @@ pub fn current_time_as_padded_string() -> String {
 
     date
 }
+
+pub fn padded_time_to_date_string(padded_time: &str, fmt: &str) -> String {
+    let seconds_since_epoch = padded_time.parse::<u64>().unwrap();
+    let d = UNIX_EPOCH + std::time::Duration::from_secs(seconds_since_epoch);
+    let datetime = chrono::DateTime::<chrono::Local>::from(d);
+    datetime.format(fmt).to_string()
+}

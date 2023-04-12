@@ -70,9 +70,12 @@ function renderPost(post_data, basePath) {
 
 	<div class="card-body">
 		<h5 class="card-title text-muted">${ post_data.account.display_name }</h5>
+
 		<p class="card-text">${ post_data.post.content }</p>
-		<p class="card-text text-muted">${ post_data.comment_count } comments</p>
-		<p id="score-${ post_data.post.id }" class="card-text text-muted">${ post_data.post.score } upvotes</p>
+
+		<p class="card-text text-muted my-0">${ post_data.comment_count } comments</p>
+		<p id="score-${ post_data.post.id }" class="card-text text-muted my-0">${ post_data.post.score } upvotes</p>
+        <p class="card-text text-muted">${ post_data.date_string }</p>
 	`;
 
 	if (post_data.vote_value == -2) {

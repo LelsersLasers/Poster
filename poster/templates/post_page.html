@@ -157,12 +157,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 {% macro renderCommentData(comment_tree_node, basePath) %}
-	<div class="card m-4">
-		<div class="card-body">
+	<div class="card mx-4 my-1 p-0">
+		<div class="card-body pb-0 px-3 pt-3">
 			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
 			<p class="card-text">{{ comment_tree_node.comment.content }}</p>
 
-			<p id="score-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" class="card-text text-muted">{{ comment_tree_node.comment.score }} upvotes</p>
+			<p id="score-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" class="card-text text-muted my-0">{{ comment_tree_node.comment.score }} upvotes</p>
+            <p class="card-text text-muted">{{ comment_tree_node.date_string }}</p>
 
 
 			<input type="hidden" name="upvote_path-comment-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'upvote_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
@@ -194,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 {% block body %}
 
-<div class="row justify-content-center full-width">
+<div class="row justify-content-center full-width mb-2">
 	<div id="contentContainer" class="col-12 col-md-10 col-lg-8">
 
 		<div class="jumbotron m-4 py-4">
@@ -209,7 +210,8 @@ document.addEventListener("DOMContentLoaded", function() {
 			<p class="lead">{{ post_data.post.content }}</p>
 			
 
-			<p id="score-{{ post_data.post.id }}" class="card-text text-muted">{{ post_data.post.score }} upvotes</p>
+			<p id="score-{{ post_data.post.id }}" class="card-text text-muted my-0">{{ post_data.post.score }} upvotes</p>
+            <p class="card-text text-muted">{{ post_data.date_string }}</p>
 			<!-- NOTE: syntax errors are okay here, from templating -->
 			<div id="voteButtons">
 				<button id="upvotePostButton" onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-success mb-2">Upvote</button>

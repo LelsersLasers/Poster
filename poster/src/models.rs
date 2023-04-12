@@ -137,6 +137,7 @@ pub struct PostData {
     account: models::Account,
     vote_value: i32,
     comment_count: u32,
+    date_string: String,
 }
 
 #[derive(Serialize)]
@@ -147,9 +148,6 @@ pub struct Post {
     pub date: String, // sec since epoch as String
 
     pub account_id: u32, // 1 Account : many Post
-
-    // pub upvotes: Vec<Account>,
-    // pub downvotes: Vec<Account>,
 
     pub score: i32, // upvotes - downvotes
 }
@@ -198,23 +196,6 @@ impl Post {
 
         new_id
     }
-    // pub async fn from_id(id: u32) -> Post {
-    //     let db = sql::connect_to_db().await;
-    //     sqlx::query(sql::GET_POST_FROM_ID_SQL)
-    //         .bind(id)
-    //         .map(|row: SqliteRow| {
-    //             Post {
-    //                 id: row.try_get("id").unwrap(),
-    //                 title: row.try_get("title").unwrap(),
-    //                 content: row.try_get("content").unwrap(),
-    //                 date: row.try_get("date").unwrap(),
-    //                 account_id: row.try_get("account_id").unwrap(),
-    //             }
-    //         })
-    //         .fetch_one(&db)
-    //         .await
-    //         .unwrap()
-    // }
     pub async fn maybe_from_id(id: u32) -> Option<Post> {
         let db = sql::connect_to_db().await;
         sqlx::query(sql::GET_POST_FROM_ID_SQL)
@@ -324,7 +305,9 @@ impl Post {
             -2 // not -1, 0, 1
         };
 
-        PostData { post: self, account, comment_count, vote_value }
+        let date_string = utils::padded_time_to_date_string(&self.date, "Posted on %b %-d, %Y, at %-k:%M");
+
+        PostData { post: self, account, comment_count, vote_value, date_string }
     }
 }
 
@@ -334,6 +317,7 @@ pub struct CommentTreeNode {
     pub account: Account,
     pub children: Vec<CommentTreeNode>,
     pub vote_value: i32,
+    pub date_string: String,
 }
 
 #[derive(Serialize)]
@@ -345,13 +329,6 @@ pub struct Comment {
     pub account_id: u32,    // 1 Account : many Comment
     pub post_id: u32,       // 1 Post : many Comment
     pub parent_comment_id: Option<u32>, // 1 Comment : many Comment
-
-
-    // many Post : many User
-    // pub upvotes: Vec<Account>,
-    // pub downvotes: Vec<Account>,
-
-    // pub parent: Box<PostOrComment>,
 
     pub score: i32, // upvotes - downvotes
 }
@@ -413,15 +390,19 @@ impl Comment {
         for child_comment in child_comments {
             children.push(Comment::build_comment_tree(child_comment, session).await);
         }
+
+        // children.sort_by(|a, b| b.comment.score.cmp(&a.comment.score));
         
         let vote_value = Comment::get_vote_value(self.id, self.post_id, session).await;
-
         let account = Account::from_id(self.account_id).await;
+        let date_string = utils::padded_time_to_date_string(&self.date, "Commented on %b %-d, %Y, at %-k:%M");
+
         CommentTreeNode {
             comment: self,
             account,
             children,
             vote_value,
+            date_string,
         }
     }
     pub async fn maybe_from_id(id: u32, post_id: u32) -> Option<Self> {
