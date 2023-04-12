@@ -133,11 +133,11 @@ impl Account {
 
 #[derive(Serialize)]
 pub struct PostData {
-    post: models::Post,
-    account: models::Account,
-    vote_value: i32,
-    comment_count: u32,
-    date_string: String,
+    pub post: models::Post,
+    pub account: models::Account,
+    pub vote_value: i32,
+    pub comment_count: u32,
+    pub date_string: String,
 }
 
 #[derive(Serialize)]
@@ -391,7 +391,15 @@ impl Comment {
             children.push(Comment::build_comment_tree(child_comment, session).await);
         }
 
-        // children.sort_by(|a, b| b.comment.score.cmp(&a.comment.score));
+        children.sort_by(|a, b| {
+            let a_score = a.comment.score;
+            let b_score = b.comment.score;
+            if a_score == b_score {
+                b.comment.date.cmp(&a.comment.date)
+            } else {
+                b_score.cmp(&a_score)
+            }
+        });
         
         let vote_value = Comment::get_vote_value(self.id, self.post_id, session).await;
         let account = Account::from_id(self.account_id).await;

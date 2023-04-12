@@ -408,6 +408,16 @@ pub async fn post_page(
             comment_tree_nodes.push(comment_tree_node);
         }
 
+        comment_tree_nodes.sort_by(|a, b| {
+            let a_score = a.comment.score;
+            let b_score = b.comment.score;
+            if a_score == b_score {
+                b.comment.date.cmp(&a.comment.date)
+            } else {
+                b_score.cmp(&a_score)
+            }
+        });
+
         let post_data = post.into_post_data(&session).await;
 
 
@@ -471,7 +481,15 @@ pub async fn get_posts(
         post_datas.push(post_data);
     }
 
-    // post_datas.sort_by(|a, b| b.post.score.cmp(&a.post.score));
+    post_datas.sort_by(|a, b| {
+        let a_score = a.post.score;
+        let b_score = b.post.score;
+        if a_score == b_score {
+            b.post.date.cmp(&a.post.date)
+        } else {
+            b_score.cmp(&a_score)
+        }
+    });
 
     Json(post_datas)
 }
