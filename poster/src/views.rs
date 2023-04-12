@@ -13,10 +13,11 @@ pub async fn logout(
 
 
 pub async fn attempt_login(
+    pool: &SqlitePool,
     session: &mut WritableSession,
     user: &models::User,
 ) -> bool {
-    let user_exists = user.exists().await;
+    let user_exists = user.exists(pool).await;
     if user_exists {
         session.insert("current_user", user).unwrap();
     }
@@ -35,9 +36,11 @@ pub struct LoginForm {
     password: String,
 }
 pub async fn login_handler(
+    State(app_state): State<AppState>,
     mut session: WritableSession,
     Form(login_form): Form<LoginForm>,
 ) -> impl IntoResponse {
+    let pool = &app_state.pool;
 
     if session.get_raw("current_user").is_some() {
         return Redirect::to(BASE_PATH);
@@ -45,7 +48,7 @@ pub async fn login_handler(
 
     let user = models::User::new(login_form.username.clone(), login_form.password.clone());
 
-    let login_result = attempt_login(&mut session, &user).await; 
+    let login_result = attempt_login(pool, &mut session, &user).await; 
     if login_result {
         Redirect::to(&(BASE_PATH.to_string() + "/back"))
     } else {
@@ -75,9 +78,11 @@ pub struct SignupForm {
     password2: String,
 }
 pub async fn signup_handler(
+    State(app_state): State<AppState>,
     mut session: WritableSession,
     Form(signup_form): Form<SignupForm>,
 ) -> impl IntoResponse {
+    let pool = &app_state.pool;
 
     if session.get_raw("current_user").is_some() {
         return Redirect::to(BASE_PATH);
@@ -97,14 +102,14 @@ pub async fn signup_handler(
         return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
-    let unique_username = !models::User::username_exists(&signup_form.username).await;
+    let unique_username = !models::User::username_exists(&signup_form.username, pool).await;
     if !unique_username {
         signup_context.error = "Username already exists".to_string();
         session.insert("signup_context", signup_context).unwrap();
         return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
-    let unique_display_name = !models::Account::display_name_exists(&signup_form.display_name).await;
+    let unique_display_name = !models::Account::display_name_exists(&signup_form.display_name, pool).await;
     if !unique_display_name {
         signup_context.error = "Display name already exists".to_string();
         session.insert("signup_context", signup_context).unwrap();
@@ -114,11 +119,11 @@ pub async fn signup_handler(
     let user = models::User::new(signup_form.username, signup_form.password1);
     let account = models::Account::new(signup_form.display_name, user.id.clone());
 
-    user.add_to_db().await;
-    account.add_to_db().await;
+    user.add_to_db(pool).await;
+    account.add_to_db(pool).await;
 
 
-    let _login_result = attempt_login(&mut session, &user).await; // should always be true
+    let _login_result = attempt_login(pool, &mut session, &user).await; // should always be true
     Redirect::to(&(BASE_PATH.to_string() + "/back"))
 }
 
@@ -130,9 +135,12 @@ pub struct CreatePostForm {
     content: String,
 }
 pub async fn create_post(
+    State(app_state): State<AppState>,
     session: WritableSession,
     Form(signup_form): Form<CreatePostForm>,
 ) -> impl IntoResponse {
+    let pool = &app_state.pool;
+
     if let Some(user) = session.get::<models::User>("current_user") {
 
         let title = signup_form.title.trim().to_string();
@@ -141,7 +149,7 @@ pub async fn create_post(
         // padding the date with 0s to make it sortable
         let date = utils::current_time_as_padded_string();
 
-        let account = models::Account::from_user(&user).await;
+        let account = models::Account::from_user(&user, pool).await;
         
         let post = models::Post::new(
             title,
@@ -150,7 +158,7 @@ pub async fn create_post(
             account.id,
         );
         
-        let post_id = post.add_to_db().await;
+        let post_id = post.add_to_db(pool).await;
         Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string()))
     } else {
         Redirect::to(BASE_PATH)
@@ -214,17 +222,20 @@ pub struct AddCommentForm {
     content: String,
 }
 pub async fn add_comment_to_post(
+    State(app_state): State<AppState>,
     session: WritableSession,
     Path(post_id): Path<u32>,
     Form(add_comment_form): Form<AddCommentForm>,
 ) -> impl IntoResponse {
-    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    let pool = &app_state.pool;
+
+    let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
     if maybe_post.is_none() {
         return Redirect::to(BASE_PATH).into_response();
     }
 
     if let Some(user) = session.get::<models::User>("current_user") {
-        let account = models::Account::from_user(&user).await;
+        let account = models::Account::from_user(&user, pool).await;
 
         let content = add_comment_form.content.trim().to_string();
         let date = utils::current_time_as_padded_string();
@@ -236,27 +247,30 @@ pub async fn add_comment_to_post(
             Option::None,
         );
 
-        comment.add_to_db().await;
+        comment.add_to_db(pool).await;
     }
     Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response()
 }
 pub async fn add_comment_to_comment(
+    State(app_state): State<AppState>,
     session: WritableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
     Form(add_comment_form): Form<AddCommentForm>,
 ) -> impl IntoResponse {
-    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    let pool = &app_state.pool;
+
+    let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
     if maybe_post.is_none() {
         return Redirect::to(BASE_PATH).into_response();
     }
 
-    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
+    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id, pool).await;
     if maybe_comment.is_none() {
         return Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response();
     }
 
     if let Some(user) = session.get::<models::User>("current_user") {
-        let account = models::Account::from_user(&user).await;
+        let account = models::Account::from_user(&user, pool).await;
 
         let content = add_comment_form.content.trim().to_string();
         let date = utils::current_time_as_padded_string();
@@ -268,63 +282,72 @@ pub async fn add_comment_to_comment(
             Option::Some(comment_id),
         );
 
-        comment.add_to_db().await;
+        comment.add_to_db(pool).await;
     }
     Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response()
 }
 
 
 pub async fn upvote_post(
+    State(app_state): State<AppState>,
     session: WritableSession,
     Path(post_id): Path<u32>,
 ) -> Json<Option<models::PostData>> {
-    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    let pool = &app_state.pool;
+
+    let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
     if maybe_post.is_none() {
         return Json(None);
     }
     let unchanged_post = maybe_post.unwrap();
 
     if let Some(user) = &session.get::<models::User>("current_user") {
-        let account = models::Account::from_user(user).await;
+        let account = models::Account::from_user(user, pool).await;
 
-        models::Post::vote(post_id, account.id, 1).await;
-        let post = models::Post::maybe_from_id(post_id).await.unwrap();
-        let post_data = post.into_post_data(&session).await;
+        models::Post::vote(post_id, account.id, 1, pool).await;
+        let post = models::Post::maybe_from_id(post_id, pool).await.unwrap();
+        let post_data = post.into_post_data(&session, pool).await;
         return Json(Some(post_data));
     }
 
-    let post_data = unchanged_post.into_post_data(&session).await;
+    let post_data = unchanged_post.into_post_data(&session, pool).await;
     Json(Some(post_data))
 }
 pub async fn downvote_post(
+    State(app_state): State<AppState>,
     session: WritableSession,
     Path(post_id): Path<u32>,
 ) -> Json<Option<models::PostData>> {
-    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    let pool = &app_state.pool;
+
+    let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
     if maybe_post.is_none() {
         return Json(None);
     }
     let unchanged_post = maybe_post.unwrap();
 
     if let Some(user) = &session.get::<models::User>("current_user") {
-        let account = models::Account::from_user(user).await;
+        let account = models::Account::from_user(user, pool).await;
 
-        models::Post::vote(post_id, account.id, -1).await;
-        let post = models::Post::maybe_from_id(post_id).await.unwrap();
-        let post_data = post.into_post_data(&session).await;
+        models::Post::vote(post_id, account.id, -1, pool).await;
+        let post = models::Post::maybe_from_id(post_id, pool).await.unwrap();
+        let post_data = post.into_post_data(&session, pool).await;
         return Json(Some(post_data));
     }
 
-    let post_data = unchanged_post.into_post_data(&session).await;
+    let post_data = unchanged_post.into_post_data(&session, pool).await;
     Json(Some(post_data))
 }
 
 pub async fn upvote_comment(
+    State(app_state): State<AppState>,
     session: WritableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
 ) -> Json<Value> {
-    let maybe_post = models::Post::maybe_from_id(post_id).await;
-    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
+    let pool = &app_state.pool;
+
+    let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
+    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id, pool).await;
     if maybe_post.is_none() || maybe_comment.is_none() {
         return Json(json!({
             "score": -1,
@@ -334,10 +357,10 @@ pub async fn upvote_comment(
     let comment = maybe_comment.unwrap();
 
     if let Some(user) = session.get::<models::User>("current_user") {
-        let account = models::Account::from_user(&user).await;
+        let account = models::Account::from_user(&user, pool).await;
 
-        let score = models::Comment::vote(comment_id, post_id, account.id, 1).await;
-        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &session).await;
+        let score = models::Comment::vote(comment_id, post_id, account.id, 1, pool).await;
+        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &session, pool).await;
         return Json(json!( {
             "score": score,
             "vote_value": vote_value
@@ -349,11 +372,14 @@ pub async fn upvote_comment(
     }))
 }
 pub async fn downvote_comment(
+    State(app_state): State<AppState>,
     session: WritableSession,
     Path((post_id, comment_id)): Path<(u32, u32)>,
 ) -> Json<Value> {
-    let maybe_post = models::Post::maybe_from_id(post_id).await;
-    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id).await;
+    let pool = &app_state.pool;
+
+    let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
+    let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id, pool).await;
     if maybe_post.is_none() || maybe_comment.is_none() {
         return Json(json!({
             "score": -1,
@@ -363,10 +389,10 @@ pub async fn downvote_comment(
     let comment = maybe_comment.unwrap();
 
     if let Some(user) = session.get::<models::User>("current_user") {
-        let account = models::Account::from_user(&user).await;
+        let account = models::Account::from_user(&user, pool).await;
 
-        let score = models::Comment::vote(comment_id, post_id, account.id, -1).await;
-        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &session).await;
+        let score = models::Comment::vote(comment_id, post_id, account.id, -1, pool).await;
+        let vote_value = models::Comment::get_vote_value(comment_id, post_id, &session, pool).await;
         return Json(json!( {
             "score": score,
             "vote_value": vote_value
@@ -382,12 +408,14 @@ pub async fn downvote_comment(
 
 pub async fn post_page(
     mut session: WritableSession,
-    engine: AppEngine,
+    State(app_state): State<AppState>,
     Key(key): Key,
     Path(post_id): Path<u32>,
 ) -> impl IntoResponse {
-    
-    let maybe_post = models::Post::maybe_from_id(post_id).await;
+    let engine = app_state.engine;
+    let pool = &app_state.pool;
+
+    let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
     if let Some(mut post) = maybe_post {
 
         #[derive(Serialize)]
@@ -399,12 +427,12 @@ pub async fn post_page(
 
         post.content = post.content.replace('\n', "<br />");
         
-        let comments = models::Comment::top_level_comments_from_post_id(post.id).await;
+        let comments = models::Comment::top_level_comments_from_post_id(post.id, pool).await;
         
         
         let mut comment_tree_nodes = Vec::new();
         for comment in comments {
-            let comment_tree_node = models::Comment::build_comment_tree(comment, &session).await;
+            let comment_tree_node = models::Comment::build_comment_tree(comment, &session, pool).await;
             comment_tree_nodes.push(comment_tree_node);
         }
 
@@ -418,7 +446,7 @@ pub async fn post_page(
             }
         });
 
-        let post_data = post.into_post_data(&session).await;
+        let post_data = post.into_post_data(&session, pool).await;
 
 
         let data = PostPageData {
@@ -438,11 +466,11 @@ pub async fn post_page(
 
 
 pub async fn get_posts(
+    State(app_state): State<AppState>,
     session: WritableSession,
 ) -> Json<Vec<models::PostData>> {
+    let pool = &app_state.pool;
     let mut post_datas = Vec::new();
-    
-    let db = sql::connect_to_db().await;
 
     let mut stream = sqlx::query(sql::GET_ALL_POSTS_SQL)
         .map(|row: SqliteRow| {
@@ -473,11 +501,11 @@ pub async fn get_posts(
                 account_id,
             }
         })
-        .fetch(&db);
+        .fetch(pool);
 
     while let Some(row) = stream.next().await {
         let post = row.unwrap();
-        let post_data = post.into_post_data(&session).await;
+        let post_data = post.into_post_data(&session, pool).await;
         post_datas.push(post_data);
     }
 
@@ -494,7 +522,6 @@ pub async fn get_posts(
     Json(post_datas)
 }
 pub async fn root(
-    // State(pool): State<SqlitePool>
     mut session: WritableSession,
     engine: AppEngine,
     Key(key): Key,

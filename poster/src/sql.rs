@@ -1,5 +1,3 @@
-use crate::*;
-
 pub const FIND_USER_SQL: &str = r#"
     SELECT
         COUNT(id) AS found
@@ -205,7 +203,3 @@ pub const GET_COMMENT_VOTE_SQL: &str = r#"
     WHERE
         comment_id = ? AND post_id = ? AND account_id = ?
 ;"#;
-
-pub async fn connect_to_db() -> sqlx::Pool<sqlx::Sqlite> {
-    sqlx::SqlitePool::connect(DB_PATH).await.unwrap()
-}

@@ -1,5 +1,5 @@
 use axum::{
-    extract::Path,
+    extract::{Path, State},
     response::IntoResponse,
     routing::{get, post},
     Router,
@@ -35,11 +35,11 @@ use std::net::SocketAddr;
 use futures_util::StreamExt;
 use sqlx::{
     sqlite::{
-        // SqlitePoolOptions,
+        SqlitePoolOptions,
         SqliteRow
     },
     Row,
-    // SqlitePool,
+    SqlitePool,
 };
 
 
@@ -67,8 +67,9 @@ const SQL_PATH: &str = "sql/";
 
 
 #[derive(Clone, FromRef)]
-struct AppState {
+pub struct AppState {
     engine: AppEngine,
+    pool: SqlitePool,
 }
 
 
@@ -78,18 +79,19 @@ struct AppState {
 async fn main() {
     // database
     // let db = sql::connect_to_db().await;
-    // let pool = SqlitePoolOptions::new()
-    //     .max_connections(5)
-    //     .connect(DB_PATH)
-    //     .await
-    //     .unwrap();
+
+    let pool = SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect(DB_PATH)
+        .await
+        .unwrap();
 
     let store = MemoryStore::new();
     let secret = rand::thread_rng().gen::<[u8; 128]>();
     let session_layer = SessionLayer::new(store, &secret).with_secure(false);
 
 
-    create_tables().await;
+    create_tables(&pool).await;
 
 
     let mut env = Environment::new();
@@ -182,9 +184,7 @@ async fn main() {
         
         
         .layer(session_layer)
-        .with_state(AppState { engine })
-        ;
-        // .with_state(pool);
+        .with_state(AppState { engine, pool });
 
     let all_routes = Router::new()
         .route("/", get(|| async { Redirect::to(BASE_PATH) })) // TODO: trim trailing slash -> "" instead of "/"
@@ -217,10 +217,10 @@ async fn logging_middleware<B>(
 }
 
 
-async fn create_tables() {
-    let db = sql::connect_to_db().await;
+async fn create_tables(pool: &SqlitePool) {
+    // let db = sql::connect_to_db().await;
     sqlx::query(&utils::read_file(&(SQL_PATH.to_string() + "makeTables.sql")))
-        .execute(&db)
+        .execute(pool)
         .await
         .unwrap();
 }
