@@ -3,9 +3,12 @@ use crate::*;
 
 pub async fn logout(
     mut session: WritableSession,
-    Redirect::to(&(BASE_PATH.to_string() + "/"))
 ) -> impl IntoResponse {    
     session.remove("current_user");
+    session.remove("login_context");
+    session.remove("signup_context");
+
+    Redirect::to(&(BASE_PATH.to_string() + "/back"))
 }
 
 
@@ -467,6 +470,8 @@ pub async fn get_posts(
         let post_data = post.into_post_data(&session).await;
         post_datas.push(post_data);
     }
+
+    // post_datas.sort_by(|a, b| b.post.score.cmp(&a.post.score));
 
     Json(post_datas)
 }
