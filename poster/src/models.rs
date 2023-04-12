@@ -55,15 +55,6 @@ impl User {
         }
     }
 }
-// impl AuthUser for User {
-//     fn get_id(&self) -> String {
-//         self.id.clone()
-//     }
-
-//     fn get_password_hash(&self) -> SecretVec<u8> {
-//         SecretVec::new(self.password_hash.clone().into())
-//     }
-// }
 
 
 #[derive(Serialize)]
@@ -317,13 +308,11 @@ impl Post {
             .unwrap()
     }
     pub async fn into_post_data(self,
-        // auth: &AuthContext
         session: &WritableSession,
     ) -> PostData {
         let account = models::Account::from_id(self.account_id).await;
         let comment_count = self.count_comments().await;
         let vote_value = if let Some(user) = session.get::<models::User>("current_user") {
-            // let user = auth.current_user.as_ref().unwrap();
             let account = models::Account::from_user(&user).await;
             let maybe_vote_value = self.maybe_account_vote(account.id).await;
             if let Some(vote_value) = maybe_vote_value {
@@ -401,7 +390,6 @@ impl Comment {
     #[async_recursion]
     pub async fn build_comment_tree(
         self,
-        // auth: &AuthContext
         session: &WritableSession,
     ) -> CommentTreeNode {
         let mut children = Vec::new();
@@ -561,11 +549,9 @@ impl Comment {
     }
     pub async fn get_vote_value(
         id: u32, post_id: u32,
-        // auth: &AuthContext
         session: &WritableSession
     ) -> i32 {
         if let Some(user) = &session.get::<User>("current_user") {
-            // let user = auth.current_user.as_ref().unwrap();
             let account = models::Account::from_user(user).await;
             let maybe_vote_value = {
                 let db = sql::connect_to_db().await;
@@ -591,8 +577,3 @@ impl Comment {
         }
     }
 }
-
-// pub enum PostOrComment {
-//     Post(Post),
-//     Comment(Comment),
-// }

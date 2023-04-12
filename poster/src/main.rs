@@ -2,7 +2,6 @@ use axum::{
     extract::Path,
     response::IntoResponse,
     routing::{get, post},
-    // Extension,
     Router,
     response::{Redirect, Json, Response},
     extract::FromRef,
@@ -16,13 +15,6 @@ use tower_http::normalize_path::NormalizePathLayer;
 use serde_json::{Value, json};
 
 
-// use axum_login::{
-//     secrecy::SecretVec,
-//     AuthLayer,
-//     AuthUser,
-//     SqliteStore,
-// };
-
 use axum_sessions::{
     async_session::MemoryStore,
     extractors::WritableSession,
@@ -30,7 +22,6 @@ use axum_sessions::{
 };
 
 use rand::Rng;
-// type AuthContext = axum_login::extractors::AuthContext<models::User, SqliteStore<models::User>>;
 
 
 use axum_template::{engine::Engine, Key, RenderHtml};
@@ -93,23 +84,12 @@ async fn main() {
     //     .await
     //     .unwrap();
 
-    // let login_secret = rand::thread_rng().gen::<[u8; 64]>();
-    // let log_session_store = MemoryStore::new();
-    // let login_session_layer = SessionLayer::new(log_session_store, &login_secret).with_secure(false);
-    // let pool = SqlitePoolOptions::new()
-    //     .connect(DB_PATH)
-    //     .await
-    //     .unwrap();
-    // let login_user_store = SqliteStore::<models::User>::new(pool);
-    // let login_auth_layer = AuthLayer::new(login_user_store, &login_secret);
-
     let store = MemoryStore::new();
     let secret = rand::thread_rng().gen::<[u8; 128]>();
     let session_layer = SessionLayer::new(store, &secret).with_secure(false);
 
 
     create_tables().await;
-
 
 
     let mut env = Environment::new();
@@ -166,8 +146,6 @@ async fn main() {
     // let app_state = AppState { engine };
 
 
-
-    // build our application with a route
     let routes = Router::new()
 
         .route("/", get(views::root)) // all
@@ -202,8 +180,7 @@ async fn main() {
 
         .route("/back", get(views::back)) // all
         
-        // .layer(login_auth_layer)
-        // .layer(login_session_layer)
+        
         .layer(session_layer)
         .with_state(AppState { engine })
         ;
