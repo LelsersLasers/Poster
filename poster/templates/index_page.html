@@ -117,7 +117,14 @@ const handleInfiniteScroll = () => {
   throttle(() => {
     const endOfPage = window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5;
     if (endOfPage) {
-		renderPostDataJsons();
+		renderPostDataJsons()
+            .then(() => {
+                window.scrollBy({
+                    top: 100,
+                    left: 0,
+                    behavior: 'smooth'
+                });
+            })
     }
   }, 500);
 };
