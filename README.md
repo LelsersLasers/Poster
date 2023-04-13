@@ -8,7 +8,7 @@ Simple reddit-esque social media like website (hopefully)
 - Infinite scroll on main page
     - Don't show same posts
         - WHen to reset seen_post_ids??
-        - How to handle back button???
+        - **How to handle back button???**
 - Polish and CSS
     - Usable on multiple screen sizes, resolutions, and mobile
     - Scroll to posted comment

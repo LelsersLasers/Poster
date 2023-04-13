@@ -517,8 +517,8 @@ pub async fn get_posts(
             let title: String = row.get(1);
             let full_content: String = row.get(2);
 
-            let first_four_lines = full_content.lines().take(4).collect::<Vec<&str>>().join("<br />");
-            let content_str = &first_four_lines[0..first_four_lines.len().min(500)];
+            let first_three_lines = full_content.lines().take(3).collect::<Vec<&str>>().join("<br />");
+            let content_str = &first_three_lines[0..first_three_lines.len().min(400)];
             
             let content = if content_str.len() < full_content.len() {
                 content_str.to_string() + "..."
