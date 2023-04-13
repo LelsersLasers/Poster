@@ -477,7 +477,36 @@ pub async fn get_posts(
         query_string += ")";
     }
 
-    query_string += "\nORDER BY score DESC, date DESC";
+    let sort = session.get::<String>("sort").unwrap_or_else(|| "newest".to_string());
+    if sort == "newest" {
+        query_string += "\nORDER BY date DESC";
+    } else if sort == "top-all-time" {
+        query_string += "\nORDER BY score DESC, date DESC";
+    } else {
+        let mut seconds_range = 60 * 60 * 24;
+        if sort == "top-this-year" {
+            seconds_range *= 365;
+        } else if sort == "top-this-week" {
+            seconds_range *= 7;
+        }
+
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let seconds = now - seconds_range;
+        let seconds_string = utils::pad_int(seconds);
+
+        if !seen_post_ids.is_empty() {
+            query_string += "\nAND ";
+        } else {
+            query_string += "\nWHERE ";
+        }
+
+        query_string += "date > '";
+        query_string += &seconds_string;
+        query_string += "'";
+
+
+        query_string += "\nORDER BY score DESC, date DESC";
+    }
     query_string += "\nLIMIT 4;";
 
 
@@ -545,6 +574,14 @@ pub async fn root(
     session.insert("seen_post_ids", seen_post_ids).unwrap();
 
     RenderHtml(key, engine, data)
+}
+
+pub async fn set_sort (
+    mut session: WritableSession,
+    Path(sort): Path<String>,
+) {
+    session.insert("sort", sort).unwrap();
+    session.remove("seen_post_ids");
 }
 
 

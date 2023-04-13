@@ -31,7 +31,11 @@ function downvotePost(postId) {
 
 
 function getUrl() {
-	return new URL(window.location.href) + "/";
+	let url = new URL(window.location.href) + "/";
+    if (url.endsWith("//")) {
+		url = url.slice(0, -1);
+	}
+    return url;
 }
 async function getPostDataJson(url) {
 	const response = await fetch(url + "get_posts");
@@ -40,9 +44,6 @@ async function getPostDataJson(url) {
 }
 async function renderPostDataJsons() {
 	let url = getUrl();
-	if (url.endsWith("//")) {
-		url = url.slice(0, -1);
-	}
 
 	const contentContainer = document.getElementById("contentContainer");
 
@@ -50,7 +51,7 @@ async function renderPostDataJsons() {
 	for (let postData of postDatas) {
 		const card = document.createElement("div");
 		card.id = "card-" + postData.post.id;
-		card.className = "card box-shadow m-4";
+		card.className = "card box-shadow mx-4 mb-4 mt-0";
 
 		const postHTML = renderPost(postData, url);
 		card.innerHTML = postHTML;		
@@ -133,7 +134,29 @@ const handleInfiniteScroll = () => {
 };
 
 
+var lastSort = "newest";
+function radioButtonOnclick() {
+    const radioButtons = document.getElementsByName("options");
+    for (let radioButton of radioButtons) {
+        radioButton.addEventListener("click", async function() {
+            if (lastSort != radioButton.id) {
+                lastSort = radioButton.id;
+                fetch(getUrl() + "set_sort/" + radioButton.id)
+                    .then((_response) => {
+                        const contentContainer = document.getElementById("contentContainer");
+                        contentContainer.innerHTML = "";
+                        renderPostDataJsons();
+                    });
+            }
+        });
+    }
+
+}
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
+    radioButtonOnclick();
 	renderPostDataJsons();
 });
 window.addEventListener("scroll", handleInfiniteScroll);
@@ -147,9 +170,28 @@ window.addEventListener("scroll", handleInfiniteScroll);
   
 	<div class="row justify-content-center full-width">
     	<div class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6">
-            <div id="contentContainer">
 
+            
+
+            <div class="btn-group btn-group-toggle px-4 mb-2" data-toggle="buttons">
+                <label class="btn btn-secondary active">
+                    <input type="radio" name="options" id="newest" checked>Newest
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="options" id="top-all-time">Top: all time
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="options" id="top-this-year">Top: this year
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="options" id="top-this-week">Top: this week
+                </label>
+                <label class="btn btn-secondary">
+                    <input type="radio" name="options" id="top-today">Top: today
+                </label>
             </div>
+
+            <div id="contentContainer"></div>
 
             <div id="endOfMessagesWarning" class="card box-shadow m-4">
                 <h5 class="card-header">You have seen all the posts there are to see...</h5>

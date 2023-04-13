@@ -14,15 +14,19 @@ pub fn hash_password(password: &str) -> String {
 
 pub fn current_time_as_padded_string() -> String {
     let seconds_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
-    let seconds_since_epoch_string = seconds_since_epoch.to_string();
-    let padding = u64::MAX.to_string().len() - seconds_since_epoch_string.len();
-    let mut date = String::new();
-    for _ in 0..padding {
-        date.push('0');
-    }
-    date.push_str(&seconds_since_epoch_string);
+    pad_int(seconds_since_epoch)
+}
 
-    date
+pub fn pad_int(int: u64) -> String {
+    let int_string = int.to_string();
+    let padding = u64::MAX.to_string().len() - int_string.len();
+    let mut padded = String::new();
+    for _ in 0..padding {
+        padded.push('0');
+    }
+    padded.push_str(&int_string);
+
+    padded
 }
 
 pub fn padded_time_to_date_string(padded_time: &str, fmt: &str) -> String {

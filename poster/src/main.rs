@@ -153,6 +153,8 @@ async fn main() {
         .route("/", get(views::root)) // all
         .route("/get_posts", get(views::get_posts)) // all
 
+        .route("/set_sort/:sort", get(views::set_sort)) // all
+
         
         .route("/login_page", get(views::login_page)) // if not logged in
         .route("/signup_page", get(views::signup_page)) // if not logged in
