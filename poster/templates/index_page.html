@@ -118,7 +118,6 @@ const handleInfiniteScroll = () => {
   throttle(() => {
     const endOfMessagesWarning = document.getElementById("endOfMessagesWarning");
     const height = endOfMessagesWarning.getBoundingClientRect().bottom - endOfMessagesWarning.getBoundingClientRect().top;
-    console.log(height);
     const endOfPage = window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5 - height;
     if (endOfPage) {
 		renderPostDataJsons()
