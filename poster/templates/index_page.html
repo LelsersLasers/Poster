@@ -157,6 +157,17 @@ function radioButtonOnclick() {
 document.addEventListener("DOMContentLoaded", () => {
     radioButtonOnclick();
 	renderPostDataJsons();
+
+	const sort = document.getElementById("sort-value");
+	const radioButtons = document.getElementsByName("options");
+	for (let radioButton of radioButtons) {
+		if (radioButton.id == sort.value) {
+			radioButton.checked = true;
+			lastSort = sort.value;
+		} else {
+			radioButton.checked = false;
+		}
+	}
 });
 window.addEventListener("scroll", handleInfiniteScroll);
 </script>
@@ -166,15 +177,15 @@ window.addEventListener("scroll", handleInfiniteScroll);
 
 
 {% block body %}
+
+	<input id="sort-value" name="sort-value" type="hidden" value="{{ sort }}" />
   
 	<div class="row justify-content-center full-width">
     	<div class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6">
 
-            
-
             <div class="btn-group btn-group-toggle px-4 mb-2" data-toggle="buttons">
-                <label class="btn btn-secondary active">
-                    <input type="radio" name="options" id="newest" checked>Newest
+                <label class="btn btn-secondary">
+                    <input type="radio" name="options" id="newest">Newest
                 </label>
                 <label class="btn btn-secondary">
                     <input type="radio" name="options" id="top-all-time">Top: all time
@@ -190,7 +201,9 @@ window.addEventListener("scroll", handleInfiniteScroll);
                 </label>
             </div>
 
+
             <div id="contentContainer"></div>
+
 
             <div id="endOfMessagesWarning" class="card box-shadow m-4">
                 <h5 class="card-header">You have seen all the posts there are to see...</h5>

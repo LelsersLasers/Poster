@@ -562,10 +562,12 @@ pub async fn root(
     #[derive(Serialize)]
     pub struct IndexData {
         logged_in: bool,
+        sort: String,
     }
 
     let data = IndexData {
         logged_in: session.get_raw("current_user").is_some(),
+        sort: session.get::<String>("sort").unwrap_or_else(|| "newest".to_string())
     };
 
     session.insert("back_url", "").unwrap();
@@ -576,7 +578,7 @@ pub async fn root(
     RenderHtml(key, engine, data)
 }
 
-pub async fn set_sort (
+pub async fn set_sort(
     mut session: WritableSession,
     Path(sort): Path<String>,
 ) {
