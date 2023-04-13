@@ -115,7 +115,10 @@ const throttle = (callback, time) => {
 }
 const handleInfiniteScroll = () => {
   throttle(() => {
-    const endOfPage = window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5;
+    const endOfMessagesWarning = document.getElementById("endOfMessagesWarning");
+    const height = endOfMessagesWarning.getBoundingClientRect().bottom - endOfMessagesWarning.getBoundingClientRect().top;
+    console.log(height);
+    const endOfPage = window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5 - height;
     if (endOfPage) {
 		renderPostDataJsons()
             .then(() => {
@@ -143,6 +146,20 @@ window.addEventListener("scroll", handleInfiniteScroll);
 {% block body %}
   
 	<div class="row justify-content-center full-width">
-    	<div id="contentContainer" class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6"></div>
+    	<div class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6">
+            <div id="contentContainer">
+
+            </div>
+
+            <div id="endOfMessagesWarning" class="card box-shadow m-4">
+                <h5 class="card-header">You have seen all the posts there are to see...</h5>
+                <div class="card-body justify-content-center">
+                    <button onclick="" class="btn btn-sm btn-outline-primary mb-2">Reset seen posts</button>
+                </div>
+            </div>
+
+        </div>
+
+        
 	</div>
 {% endblock %}

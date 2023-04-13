@@ -7,6 +7,7 @@ pub async fn logout(
     session.remove("current_user");
     session.remove("login_context");
     session.remove("signup_context");
+    session.remove("seen_post_ids");
 
     Redirect::to(&(BASE_PATH.to_string() + "/back"))
 }
