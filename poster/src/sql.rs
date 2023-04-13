@@ -57,11 +57,10 @@ pub const ADD_POST_SQL: &str = r#"
     RETURNING id
 ;"#;
 
-pub const GET_ALL_POSTS_SQL: &str = r#"
+pub const GET_POSTS_BASE_SQL: &str = r#"
     SELECT
         *
-    FROM posts
-;"#;
+    FROM posts"#;
 
 pub const GET_POST_FROM_ID_SQL: &str = r#"
     SELECT
@@ -115,6 +114,7 @@ pub const GET_TOP_LEVEL_COMMENTS_ON_POST_SQL: &str = r#"
     FROM comments
     WHERE
         post_id = ? AND parent_comment_id IS NULL
+    ORDER BY score DESC, date DESC
 ;"#;
 
 pub const GET_COMMENTS_ON_COMMENT_SQL: &str = r#"
@@ -123,6 +123,7 @@ pub const GET_COMMENTS_ON_COMMENT_SQL: &str = r#"
     FROM comments
     WHERE
         parent_comment_id = ?
+    ORDER BY score DESC, date DESC
 ;"#;
 
 

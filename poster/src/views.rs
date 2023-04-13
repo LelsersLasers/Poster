@@ -436,16 +436,6 @@ pub async fn post_page(
             comment_tree_nodes.push(comment_tree_node);
         }
 
-        comment_tree_nodes.sort_by(|a, b| {
-            let a_score = a.comment.score;
-            let b_score = b.comment.score;
-            if a_score == b_score {
-                b.comment.date.cmp(&a.comment.date)
-            } else {
-                b_score.cmp(&a_score)
-            }
-        });
-
         let post_data = post.into_post_data(&session, pool).await;
 
 
@@ -467,16 +457,34 @@ pub async fn post_page(
 
 pub async fn get_posts(
     State(app_state): State<AppState>,
-    session: WritableSession,
+    mut session: WritableSession,
 ) -> Json<Vec<models::PostData>> {
     let pool = &app_state.pool;
     let mut post_datas = Vec::new();
 
-    let mut stream = sqlx::query(sql::GET_ALL_POSTS_SQL)
+    let mut query_string = sql::GET_POSTS_BASE_SQL.to_string();
+    
+    let mut seen_post_ids = session.get::<Vec<u32>>("seen_post_ids").unwrap_or_default();
+    if !seen_post_ids.is_empty() {
+        query_string += "\nWHERE id NOT IN (";
+        for (i, post_id) in seen_post_ids.iter().enumerate() {
+            query_string += &post_id.to_string();
+            if i != seen_post_ids.len() - 1 {
+                query_string += ", ";
+            }
+        }
+        query_string += ")";
+    }
+
+    query_string += "\nORDER BY score DESC, date DESC";
+    query_string += "\nLIMIT 4;";
+
+
+    let mut stream = sqlx::query(&query_string)
         .map(|row: SqliteRow| {
             let id: u32 = row.get(0);
-            let title: String = row.get(1);
 
+            let title: String = row.get(1);
             let full_content: String = row.get(2);
 
             let first_four_lines = full_content.lines().take(4).collect::<Vec<&str>>().join("<br />");
@@ -505,19 +513,13 @@ pub async fn get_posts(
 
     while let Some(row) = stream.next().await {
         let post = row.unwrap();
+        seen_post_ids.push(post.id);
         let post_data = post.into_post_data(&session, pool).await;
         post_datas.push(post_data);
+
     }
 
-    post_datas.sort_by(|a, b| {
-        let a_score = a.post.score;
-        let b_score = b.post.score;
-        if a_score == b_score {
-            b.post.date.cmp(&a.post.date)
-        } else {
-            b_score.cmp(&a_score)
-        }
-    });
+    session.insert("seen_post_ids", seen_post_ids).unwrap();
 
     Json(post_datas)
 }
@@ -537,6 +539,9 @@ pub async fn root(
     };
 
     session.insert("back_url", "").unwrap();
+
+    let seen_post_ids: Vec<u32> = vec![];
+    session.insert("seen_post_ids", seen_post_ids).unwrap();
 
     RenderHtml(key, engine, data)
 }

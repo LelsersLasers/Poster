@@ -376,16 +376,6 @@ impl Comment {
         for child_comment in child_comments {
             children.push(Comment::build_comment_tree(child_comment, session, pool).await);
         }
-
-        children.sort_by(|a, b| {
-            let a_score = a.comment.score;
-            let b_score = b.comment.score;
-            if a_score == b_score {
-                b.comment.date.cmp(&a.comment.date)
-            } else {
-                b_score.cmp(&a_score)
-            }
-        });
         
         let vote_value = Comment::get_vote_value(self.id, self.post_id, session, pool).await;
         let account = Account::from_id(self.account_id, pool).await;

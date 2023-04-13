@@ -104,9 +104,29 @@ function renderPost(post_data, basePath) {
 }
 
 
+var throttleTimer;
+const throttle = (callback, time) => {
+  if (throttleTimer) return;
+  throttleTimer = true;
+  setTimeout(() => {
+	callback();
+    throttleTimer = false;
+  }, time);
+}
+const handleInfiniteScroll = () => {
+  throttle(() => {
+    const endOfPage = window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5;
+    if (endOfPage) {
+		renderPostDataJsons();
+    }
+  }, 500);
+};
+
+
 document.addEventListener("DOMContentLoaded", () => {
 	renderPostDataJsons();
 });
+window.addEventListener("scroll", handleInfiniteScroll);
 </script>
 
 {% endblock %}
