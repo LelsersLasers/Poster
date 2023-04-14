@@ -582,8 +582,10 @@ pub async fn set_sort(
     mut session: WritableSession,
     Path(sort): Path<String>,
 ) {
-    session.insert("sort", sort).unwrap();
-    session.remove("seen_post_ids");
+    if sort == "newest" || sort == "top-all-time" || sort == "top-this-year" || sort == "top-this-week" || sort == "top-today" {
+        session.remove("seen_post_ids");
+        session.insert("sort", sort).unwrap();
+    }
 }
 
 
