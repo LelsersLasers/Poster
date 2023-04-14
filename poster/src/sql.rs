@@ -100,14 +100,6 @@ pub const ADD_COMMENT_TO_COMMENT_SQL: &str = r#"
     RETURNING id
 ;"#;
 
-// pub const GET_COMMENTS_FROM_POST_SQL: &str = r#"
-//     SELECT
-//         *
-//     FROM comments
-//     WHERE
-//         post_id = ?
-// ;"#;
-
 pub const GET_TOP_LEVEL_COMMENTS_ON_POST_SQL: &str = r#"
     SELECT
         *

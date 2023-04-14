@@ -1,6 +1,5 @@
 use crate::*;
 
-
 pub fn read_file(path: &str) -> String {
     std::fs::read_to_string(path).unwrap()
 }
@@ -13,7 +12,10 @@ pub fn hash_password(password: &str) -> String {
 }
 
 pub fn current_time_as_padded_string() -> String {
-    let seconds_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    let seconds_since_epoch = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
     pad_int(seconds_since_epoch)
 }
 

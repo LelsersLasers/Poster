@@ -1,16 +1,15 @@
 use crate::*;
 
-
 #[derive(Serialize, Deserialize)]
 pub struct User {
     pub id: String, // database primary key = username
-    pub password_hash: String, 
+    pub password_hash: String,
 }
 impl User {
     pub fn new(username: String, password: String) -> Self {
         User {
             id: username,
-            password_hash: utils::hash_password(&password)
+            password_hash: utils::hash_password(&password),
         }
     }
     pub async fn exists(&self, pool: &SqlitePool) -> bool {
@@ -52,7 +51,6 @@ impl User {
         }
     }
 }
-
 
 #[derive(Serialize)]
 pub struct Account {
@@ -96,12 +94,10 @@ impl Account {
     pub async fn from_user(user: &User, pool: &SqlitePool) -> Account {
         sqlx::query(sql::GET_ACCOUNT_FROM_USER_ID_SQL)
             .bind(&user.id)
-            .map(|row: SqliteRow| {
-                Account {
-                    id: row.try_get("id").unwrap(),
-                    display_name: row.try_get("display_name").unwrap(),
-                    user_id: row.try_get("user_id").unwrap(),
-                }
+            .map(|row: SqliteRow| Account {
+                id: row.try_get("id").unwrap(),
+                display_name: row.try_get("display_name").unwrap(),
+                user_id: row.try_get("user_id").unwrap(),
             })
             .fetch_one(pool)
             .await
@@ -110,19 +106,16 @@ impl Account {
     pub async fn from_id(id: u32, pool: &SqlitePool) -> Account {
         sqlx::query(sql::GET_ACCOUNT_FROM_ID_SQL)
             .bind(id)
-            .map(|row: SqliteRow| {
-                Account {
-                    id: row.try_get("id").unwrap(),
-                    display_name: row.try_get("display_name").unwrap(),
-                    user_id: row.try_get("user_id").unwrap(),
-                }
+            .map(|row: SqliteRow| Account {
+                id: row.try_get("id").unwrap(),
+                display_name: row.try_get("display_name").unwrap(),
+                user_id: row.try_get("user_id").unwrap(),
             })
             .fetch_one(pool)
             .await
             .unwrap()
     }
 }
-
 
 #[derive(Serialize)]
 pub struct PostData {
@@ -191,15 +184,13 @@ impl Post {
     pub async fn maybe_from_id(id: u32, pool: &SqlitePool) -> Option<Post> {
         sqlx::query(sql::GET_POST_FROM_ID_SQL)
             .bind(id)
-            .map(|row: SqliteRow| {
-                Post {
-                    id: row.try_get("id").unwrap(),
-                    title: row.try_get("title").unwrap(),
-                    content: row.try_get("content").unwrap(),
-                    date: row.try_get("date").unwrap(),
-                    score: row.try_get("score").unwrap(),
-                    account_id: row.try_get("account_id").unwrap(),
-                }
+            .map(|row: SqliteRow| Post {
+                id: row.try_get("id").unwrap(),
+                title: row.try_get("title").unwrap(),
+                content: row.try_get("content").unwrap(),
+                date: row.try_get("date").unwrap(),
+                score: row.try_get("score").unwrap(),
+                account_id: row.try_get("account_id").unwrap(),
             })
             .fetch_optional(pool)
             .await
@@ -236,7 +227,8 @@ impl Post {
             .await
             .unwrap();
 
-        if !existed { // if existed => untoggle vote
+        if !existed {
+            // if existed => untoggle vote
             sqlx::query(sql::ADD_POST_VOTE_SQL)
                 .bind(id)
                 .bind(account_id)
@@ -275,10 +267,7 @@ impl Post {
             .await
             .unwrap()
     }
-    pub async fn into_post_data(self,
-        session: &WritableSession,
-        pool: &SqlitePool,
-    ) -> PostData {
+    pub async fn into_post_data(self, session: &WritableSession, pool: &SqlitePool) -> PostData {
         let account = models::Account::from_id(self.account_id, pool).await;
         let comment_count = self.count_comments(pool).await;
         let vote_value = if let Some(user) = session.get::<models::User>("current_user") {
@@ -293,9 +282,16 @@ impl Post {
             -2 // not -1, 0, 1
         };
 
-        let date_string = utils::padded_time_to_date_string(&self.date, "Posted on %b %-d, %Y, at %-k:%M");
+        let date_string =
+            utils::padded_time_to_date_string(&self.date, "Posted on %b %-d, %Y, at %-k:%M");
 
-        PostData { post: self, account, comment_count, vote_value, date_string }
+        PostData {
+            post: self,
+            account,
+            comment_count,
+            vote_value,
+            date_string,
+        }
     }
 }
 
@@ -314,14 +310,20 @@ pub struct Comment {
     pub content: String,
     pub date: String, // sec since epoch
 
-    pub account_id: u32,    // 1 Account : many Comment
-    pub post_id: u32,       // 1 Post : many Comment
+    pub account_id: u32,                // 1 Account : many Comment
+    pub post_id: u32,                   // 1 Post : many Comment
     pub parent_comment_id: Option<u32>, // 1 Comment : many Comment
 
     pub score: i32, // upvotes - downvotes
 }
 impl Comment {
-    pub fn new(content: String, date: String, account_id: u32, post_id: u32, parent_comment_id: Option<u32>) -> Self {
+    pub fn new(
+        content: String,
+        date: String,
+        account_id: u32,
+        post_id: u32,
+        parent_comment_id: Option<u32>,
+    ) -> Self {
         Self {
             id: 0, // will be set by database
             content,
@@ -354,21 +356,20 @@ impl Comment {
     #[async_recursion]
     pub async fn build_comment_tree(
         self,
-        session: &WritableSession, pool: &SqlitePool
+        session: &WritableSession,
+        pool: &SqlitePool,
     ) -> CommentTreeNode {
         let mut children = Vec::new();
         let child_comments = sqlx::query(sql::GET_COMMENTS_ON_COMMENT_SQL)
             .bind(self.id)
-            .map(|row: SqliteRow| {
-                Comment {
-                    id: row.try_get("id").unwrap(),
-                    content: row.try_get("content").unwrap(),
-                    date: row.try_get("date").unwrap(),
-                    score: row.try_get("score").unwrap(),
-                    account_id: row.try_get("account_id").unwrap(),
-                    post_id: row.try_get("post_id").unwrap(),
-                    parent_comment_id: row.try_get("parent_comment_id").unwrap(),
-                }
+            .map(|row: SqliteRow| Comment {
+                id: row.try_get("id").unwrap(),
+                content: row.try_get("content").unwrap(),
+                date: row.try_get("date").unwrap(),
+                score: row.try_get("score").unwrap(),
+                account_id: row.try_get("account_id").unwrap(),
+                post_id: row.try_get("post_id").unwrap(),
+                parent_comment_id: row.try_get("parent_comment_id").unwrap(),
             })
             .fetch_all(pool)
             .await
@@ -376,10 +377,11 @@ impl Comment {
         for child_comment in child_comments {
             children.push(Comment::build_comment_tree(child_comment, session, pool).await);
         }
-        
+
         let vote_value = Comment::get_vote_value(self.id, self.post_id, session, pool).await;
         let account = Account::from_id(self.account_id, pool).await;
-        let date_string = utils::padded_time_to_date_string(&self.date, "Commented on %b %-d, %Y, at %-k:%M");
+        let date_string =
+            utils::padded_time_to_date_string(&self.date, "Commented on %b %-d, %Y, at %-k:%M");
 
         CommentTreeNode {
             comment: self,
@@ -393,22 +395,26 @@ impl Comment {
         sqlx::query(sql::GET_COMMENT_FROM_IDS_SQL)
             .bind(id)
             .bind(post_id)
-            .map(|row: SqliteRow| {
-                Comment {
-                    id: row.try_get("id").unwrap(),
-                    content: row.try_get("content").unwrap(),
-                    date: row.try_get("date").unwrap(),
-                    score: row.try_get("score").unwrap(),
-                    account_id: row.try_get("account_id").unwrap(),
-                    post_id: row.try_get("post_id").unwrap(),
-                    parent_comment_id: row.try_get("parent_comment_id").unwrap(),
-                }
+            .map(|row: SqliteRow| Comment {
+                id: row.try_get("id").unwrap(),
+                content: row.try_get("content").unwrap(),
+                date: row.try_get("date").unwrap(),
+                score: row.try_get("score").unwrap(),
+                account_id: row.try_get("account_id").unwrap(),
+                post_id: row.try_get("post_id").unwrap(),
+                parent_comment_id: row.try_get("parent_comment_id").unwrap(),
             })
             .fetch_optional(pool)
             .await
             .unwrap()
     }
-    pub async fn vote(id: u32, post_id: u32, account_id: u32, vote_value: i32, pool: &SqlitePool) -> i32 {
+    pub async fn vote(
+        id: u32,
+        post_id: u32,
+        account_id: u32,
+        vote_value: i32,
+        pool: &SqlitePool,
+    ) -> i32 {
         let existed = sqlx::query(sql::COMMENT_VOTE_EXISTS_SQL)
             .bind(id)
             .bind(account_id)
@@ -428,7 +434,8 @@ impl Comment {
             .await
             .unwrap();
 
-        if !existed { // if existed => untoggle vote
+        if !existed {
+            // if existed => untoggle vote
             sqlx::query(sql::ADD_COMMENT_VOTE_SQL)
                 .bind(id)
                 .bind(post_id)
@@ -455,7 +462,6 @@ impl Comment {
             .execute(pool)
             .await
             .unwrap();
-
 
         new_comment_score
     }
@@ -509,9 +515,10 @@ impl Comment {
             .unwrap();
     }
     pub async fn get_vote_value(
-        id: u32, post_id: u32,
+        id: u32,
+        post_id: u32,
         session: &WritableSession,
-        pool: &SqlitePool
+        pool: &SqlitePool,
     ) -> i32 {
         if let Some(user) = &session.get::<User>("current_user") {
             let account = models::Account::from_user(user, pool).await;

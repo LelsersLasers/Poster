@@ -1,9 +1,6 @@
 use crate::*;
 
-
-pub async fn logout(
-    mut session: WritableSession,
-) -> impl IntoResponse {    
+pub async fn logout(mut session: WritableSession) -> impl IntoResponse {
     session.remove("current_user");
     session.remove("login_context");
     session.remove("signup_context");
@@ -11,7 +8,6 @@ pub async fn logout(
 
     Redirect::to(&(BASE_PATH.to_string() + "/back"))
 }
-
 
 pub async fn attempt_login(
     pool: &SqlitePool,
@@ -49,7 +45,7 @@ pub async fn login_handler(
 
     let user = models::User::new(login_form.username.clone(), login_form.password.clone());
 
-    let login_result = attempt_login(pool, &mut session, &user).await; 
+    let login_result = attempt_login(pool, &mut session, &user).await;
     if login_result {
         Redirect::to(&(BASE_PATH.to_string() + "/back"))
     } else {
@@ -110,7 +106,8 @@ pub async fn signup_handler(
         return Redirect::to(&(BASE_PATH.to_string() + "/signup_page"));
     }
 
-    let unique_display_name = !models::Account::display_name_exists(&signup_form.display_name, pool).await;
+    let unique_display_name =
+        !models::Account::display_name_exists(&signup_form.display_name, pool).await;
     if !unique_display_name {
         signup_context.error = "Display name already exists".to_string();
         session.insert("signup_context", signup_context).unwrap();
@@ -123,12 +120,9 @@ pub async fn signup_handler(
     user.add_to_db(pool).await;
     account.add_to_db(pool).await;
 
-
     let _login_result = attempt_login(pool, &mut session, &user).await; // should always be true
     Redirect::to(&(BASE_PATH.to_string() + "/back"))
 }
-
-
 
 #[derive(Deserialize)]
 pub struct CreatePostForm {
@@ -143,7 +137,6 @@ pub async fn create_post(
     let pool = &app_state.pool;
 
     if let Some(user) = session.get::<models::User>("current_user") {
-
         let title = signup_form.title.trim().to_string();
         let content = signup_form.content.trim().to_string();
 
@@ -151,14 +144,9 @@ pub async fn create_post(
         let date = utils::current_time_as_padded_string();
 
         let account = models::Account::from_user(&user, pool).await;
-        
-        let post = models::Post::new(
-            title,
-            content,
-            date,
-            account.id,
-        );
-        
+
+        let post = models::Post::new(title, content, date, account.id);
+
         let post_id = post.add_to_db(pool).await;
         Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string()))
     } else {
@@ -166,11 +154,10 @@ pub async fn create_post(
     }
 }
 
-
 pub async fn create_post_page(
     engine: AppEngine,
     Key(key): Key,
-    session: WritableSession
+    session: WritableSession,
 ) -> impl IntoResponse {
     if session.get_raw("current_user").is_none() {
         Redirect::to(BASE_PATH).into_response().into_response()
@@ -184,17 +171,19 @@ pub async fn signup_page(
     engine: AppEngine,
     Key(key): Key,
 ) -> impl IntoResponse {
-
     if session.get_raw("current_user").is_some() {
         Redirect::to(BASE_PATH).into_response().into_response()
     } else {
-        let signup_context = session.get::<SignupContext>("signup_context").unwrap_or(SignupContext {
-            error: "".to_string(),
-            attempted_display_name: "".to_string(),
-            attempted_username: "".to_string(),
-            attempted_password1: "".to_string(),
-            attempted_password2: "".to_string(),
-        });
+        let signup_context =
+            session
+                .get::<SignupContext>("signup_context")
+                .unwrap_or(SignupContext {
+                    error: "".to_string(),
+                    attempted_display_name: "".to_string(),
+                    attempted_username: "".to_string(),
+                    attempted_password1: "".to_string(),
+                    attempted_password2: "".to_string(),
+                });
         RenderHtml(key, engine, signup_context).into_response()
     }
 }
@@ -204,19 +193,19 @@ pub async fn login_page(
     engine: AppEngine,
     Key(key): Key,
 ) -> impl IntoResponse {
-
     if session.get_raw("current_user").is_some() {
         Redirect::to(BASE_PATH).into_response().into_response()
     } else {
-        let login_context = session.get::<LoginContext>("login_context").unwrap_or(LoginContext {
-            error: "".to_string(),
-            attempted_username: "".to_string(),
-            attempted_password: "".to_string(),
-        });
+        let login_context = session
+            .get::<LoginContext>("login_context")
+            .unwrap_or(LoginContext {
+                error: "".to_string(),
+                attempted_username: "".to_string(),
+                attempted_password: "".to_string(),
+            });
         RenderHtml(key, engine, login_context).into_response()
     }
 }
-
 
 #[derive(Deserialize)]
 pub struct AddCommentForm {
@@ -240,13 +229,7 @@ pub async fn add_comment_to_post(
 
         let content = add_comment_form.content.trim().to_string();
         let date = utils::current_time_as_padded_string();
-        let comment = models::Comment::new(
-            content,
-            date,
-            account.id,
-            post_id,
-            Option::None,
-        );
+        let comment = models::Comment::new(content, date, account.id, post_id, Option::None);
 
         comment.add_to_db(pool).await;
     }
@@ -267,7 +250,8 @@ pub async fn add_comment_to_comment(
 
     let maybe_comment = models::Comment::maybe_from_id(comment_id, post_id, pool).await;
     if maybe_comment.is_none() {
-        return Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response();
+        return Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string()))
+            .into_response();
     }
 
     if let Some(user) = session.get::<models::User>("current_user") {
@@ -275,19 +259,13 @@ pub async fn add_comment_to_comment(
 
         let content = add_comment_form.content.trim().to_string();
         let date = utils::current_time_as_padded_string();
-        let comment = models::Comment::new(
-            content,
-            date,
-            account.id,
-            post_id,
-            Option::Some(comment_id),
-        );
+        let comment =
+            models::Comment::new(content, date, account.id, post_id, Option::Some(comment_id));
 
         comment.add_to_db(pool).await;
     }
     Redirect::to(&(BASE_PATH.to_string() + "/post/" + &post_id.to_string())).into_response()
 }
-
 
 pub async fn upvote_post(
     State(app_state): State<AppState>,
@@ -405,8 +383,6 @@ pub async fn downvote_comment(
     }))
 }
 
-
-
 pub async fn post_page(
     mut session: WritableSession,
     State(app_state): State<AppState>,
@@ -418,7 +394,6 @@ pub async fn post_page(
 
     let maybe_post = models::Post::maybe_from_id(post_id, pool).await;
     if let Some(mut post) = maybe_post {
-
         #[derive(Serialize)]
         struct PostPageData {
             post_data: models::PostData,
@@ -427,18 +402,17 @@ pub async fn post_page(
         }
 
         post.content = post.content.replace('\n', "<br />");
-        
+
         let comments = models::Comment::top_level_comments_from_post_id(post.id, pool).await;
-        
-        
+
         let mut comment_tree_nodes = Vec::new();
         for comment in comments {
-            let comment_tree_node = models::Comment::build_comment_tree(comment, &session, pool).await;
+            let comment_tree_node =
+                models::Comment::build_comment_tree(comment, &session, pool).await;
             comment_tree_nodes.push(comment_tree_node);
         }
 
         let post_data = post.into_post_data(&session, pool).await;
-
 
         let data = PostPageData {
             post_data,
@@ -446,15 +420,15 @@ pub async fn post_page(
             comment_tree_nodes,
         };
 
-        session.insert("back_url", "/post/".to_string() + &post_id.to_string()).unwrap();
-        
+        session
+            .insert("back_url", "/post/".to_string() + &post_id.to_string())
+            .unwrap();
+
         RenderHtml(key, engine, data).into_response()
     } else {
         Redirect::to(BASE_PATH).into_response()
     }
 }
-
-
 
 pub async fn get_posts(
     State(app_state): State<AppState>,
@@ -464,7 +438,7 @@ pub async fn get_posts(
     let mut post_datas = Vec::new();
 
     let mut query_string = sql::GET_POSTS_BASE_SQL.to_string();
-    
+
     let mut seen_post_ids = session.get::<Vec<u32>>("seen_post_ids").unwrap_or_default();
     if !seen_post_ids.is_empty() {
         query_string += "\nWHERE id NOT IN (";
@@ -477,7 +451,9 @@ pub async fn get_posts(
         query_string += ")";
     }
 
-    let sort = session.get::<String>("sort").unwrap_or_else(|| "newest".to_string());
+    let sort = session
+        .get::<String>("sort")
+        .unwrap_or_else(|| "newest".to_string());
     if sort == "newest" {
         query_string += "\nORDER BY date DESC";
     } else if sort == "top-all-time" {
@@ -490,7 +466,10 @@ pub async fn get_posts(
             seconds_range *= 7;
         }
 
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let seconds = now - seconds_range;
         let seconds_string = utils::pad_int(seconds);
 
@@ -504,11 +483,9 @@ pub async fn get_posts(
         query_string += &seconds_string;
         query_string += "'";
 
-
         query_string += "\nORDER BY score DESC, date DESC";
     }
     query_string += "\nLIMIT 4;";
-
 
     let mut stream = sqlx::query(&query_string)
         .map(|row: SqliteRow| {
@@ -517,15 +494,19 @@ pub async fn get_posts(
             let title: String = row.get(1);
             let full_content: String = row.get(2);
 
-            let first_three_lines = full_content.lines().take(3).collect::<Vec<&str>>().join("<br />");
+            let first_three_lines = full_content
+                .lines()
+                .take(3)
+                .collect::<Vec<&str>>()
+                .join("<br />");
             let content_str = &first_three_lines[0..first_three_lines.len().min(400)];
-            
+
             let content = if content_str.len() < full_content.len() {
                 content_str.to_string() + "..."
             } else {
                 content_str.to_string()
             };
-            
+
             let date: String = row.get(3);
             let score: i32 = row.get(4);
             let account_id: u32 = row.get(5);
@@ -546,7 +527,6 @@ pub async fn get_posts(
         seen_post_ids.push(post.id);
         let post_data = post.into_post_data(&session, pool).await;
         post_datas.push(post_data);
-
     }
 
     session.insert("seen_post_ids", seen_post_ids).unwrap();
@@ -557,8 +537,7 @@ pub async fn root(
     mut session: WritableSession,
     engine: AppEngine,
     Key(key): Key,
- ) ->  impl IntoResponse {
-
+) -> impl IntoResponse {
     #[derive(Serialize)]
     pub struct IndexData {
         logged_in: bool,
@@ -567,7 +546,9 @@ pub async fn root(
 
     let data = IndexData {
         logged_in: session.get_raw("current_user").is_some(),
-        sort: session.get::<String>("sort").unwrap_or_else(|| "newest".to_string())
+        sort: session
+            .get::<String>("sort")
+            .unwrap_or_else(|| "newest".to_string()),
     };
 
     session.insert("back_url", "").unwrap();
@@ -577,30 +558,26 @@ pub async fn root(
     RenderHtml(key, engine, data)
 }
 
-pub async fn reset_seen_posts(
-    mut session: WritableSession,
-) {
+pub async fn reset_seen_posts(mut session: WritableSession) {
     session.remove("seen_post_ids");
 }
 
-pub async fn set_sort(
-    mut session: WritableSession,
-    Path(sort): Path<String>,
-) {
-    if sort == "newest" || sort == "top-all-time" || sort == "top-this-year" || sort == "top-this-week" || sort == "top-today" {
+pub async fn set_sort(mut session: WritableSession, Path(sort): Path<String>) {
+    if sort == "newest"
+        || sort == "top-all-time"
+        || sort == "top-this-year"
+        || sort == "top-this-week"
+        || sort == "top-today"
+    {
         session.remove("seen_post_ids");
         session.insert("sort", sort).unwrap();
     }
 }
 
-
-pub async fn back(
-    session: WritableSession,
-) -> Redirect {
+pub async fn back(session: WritableSession) -> Redirect {
     if let Some(back_url) = session.get::<String>("back_url") {
         Redirect::to(&(BASE_PATH.to_string() + &back_url))
     } else {
         Redirect::to(BASE_PATH)
     }
 }
-
