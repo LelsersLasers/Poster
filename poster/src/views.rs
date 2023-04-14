@@ -572,10 +572,15 @@ pub async fn root(
 
     session.insert("back_url", "").unwrap();
 
-    let seen_post_ids: Vec<u32> = vec![];
-    session.insert("seen_post_ids", seen_post_ids).unwrap();
+    session.remove("seen_post_ids");
 
     RenderHtml(key, engine, data)
+}
+
+pub async fn reset_seen_posts(
+    mut session: WritableSession,
+) {
+    session.remove("seen_post_ids");
 }
 
 pub async fn set_sort(

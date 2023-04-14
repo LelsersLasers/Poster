@@ -153,6 +153,8 @@ async fn main() {
         .route("/", get(views::root)) // all
         .route("/get_posts", get(views::get_posts)) // all
 
+        .route("/reset_seen_posts", get(views::reset_seen_posts)) // all
+
         .route("/set_sort/:sort", get(views::set_sort)) // all
 
         

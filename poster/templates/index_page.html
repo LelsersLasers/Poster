@@ -149,7 +149,15 @@ function radioButtonOnclick() {
             }
         });
     }
+}
 
+function resetSeenPosts() {
+	fetch(getUrl() + "reset_seen_posts")
+		.then((_response) => {
+			const contentContainer = document.getElementById("contentContainer");
+			contentContainer.innerHTML = "";
+			renderPostDataJsons();
+		});
 }
 
 
@@ -208,7 +216,7 @@ window.addEventListener("scroll", handleInfiniteScroll);
             <div id="endOfMessagesWarning" class="card box-shadow m-4">
                 <h5 class="card-header">You have seen all the posts there are to see...</h5>
                 <div class="card-body justify-content-center">
-                    <button onclick="" class="btn btn-sm btn-outline-primary mb-2">Reset seen posts</button>
+                    <button onclick="resetSeenPosts()" class="btn btn-sm btn-outline-primary mb-2">Reset seen posts</button>
                 </div>
             </div>
 
