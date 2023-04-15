@@ -68,7 +68,7 @@ function renderPost(post_data, basePath) {
 <input type="hidden" name="upvote_path-${ post_data.post.id }" value="${ basePath + 'upvote_post/' + post_data.post.id }" readonly>
 <input type="hidden" name="downvote_path-${ post_data.post.id }" value="${ basePath + 'downvote_post/' + post_data.post.id }" readonly>
  
-<a href="${ basePath + 'post/' + post_data.post.id }">
+<a href="${ basePath + 'post/' + post_data.post.id }" class="noA">
     <div class="row">
         <div class="col-3 col-sm-2 d-flex justify-content-between align-items-center">`
 
@@ -93,7 +93,7 @@ function renderPost(post_data, basePath) {
     output += `
         </div>
 
-        <div class="col-6 col-sm-8 smush py-1">
+        <div class="col-6 col-sm-8 smush py-2">
             <h6 class="m-0">${ post_data.post.title }</h6>
             <small class="m-0 text-muted">Posted by ${ post_data.account.display_name } - ${ post_data.date_string }</small >
         </div>
@@ -185,21 +185,27 @@ window.addEventListener("scroll", handleInfiniteScroll);
 {% block style %}
 {{ super() }}
 <style>
-a {
+.noA {
     all: unset;
 }
-a:hover {
+.noA:hover {
     all: unset;
     cursor: pointer;
 }
 
 .smush {
-    line-height: 0.8 !important;
+    line-height: 0.9 !important;
 }
 
 .highlight:hover {
     outline: 1px solid #555;
 }
+.bg-med {
+    background-color: #dbe0e7 !important;
+}
+/* .bg-light {
+    background-color: #dbe0e7 !important;
+} */
 </style>
 {% endblock %}
 
@@ -209,23 +215,23 @@ a:hover {
 
 	<input id="sort-value" name="sort-value" type="hidden" value="{{ sort }}" />
   
-	<div class="row d-flex justify-content-around full-width bg-light">
+	<div class="row d-flex justify-content-around full-width bg-med pt-4 mt-3">
     	<div class="col-12 col-lg-7 col-xl-8" >
 
-            <div class="btn-group btn-group-toggle px-4 mb-2" data-toggle="buttons">
-                <label class="btn btn-secondary">
+            <div class="btn-group btn-group-toggle bg-light mb-2 p-2 rounded-lg full-width" data-toggle="buttons">
+                <label class="btn btn-light">
                     <input type="radio" name="options" id="newest">Newest
                 </label>
-                <label class="btn btn-secondary">
+                <label class="btn btn-light">
                     <input type="radio" name="options" id="top-all-time">Top: all time
                 </label>
-                <label class="btn btn-secondary">
+                <label class="btn btn-light">
                     <input type="radio" name="options" id="top-this-year">Top: this year
                 </label>
-                <label class="btn btn-secondary">
+                <label class="btn btn-light">
                     <input type="radio" name="options" id="top-this-week">Top: this week
                 </label>
-                <label class="btn btn-secondary">
+                <label class="btn btn-light">
                     <input type="radio" name="options" id="top-today">Top: last 24 hours
                 </label>
             </div>

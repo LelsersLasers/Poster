@@ -19,13 +19,9 @@ Simple reddit-esque social media like website (hopefully)
 ## CSS
 
 - Index
-    - Navbar
-    - Sort posts bar
     - Right bar
         - Create post
         - Newest post
         - Top post from today
         - ?
     - Dynamic? (does it work on mobile?)
-    - Spacing?
-        - Use margin instead of total columns = 12 - 1?

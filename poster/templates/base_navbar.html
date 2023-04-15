@@ -2,48 +2,28 @@
 
 
 {% block navbar %}
-	<nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
-		<a class="navbar-brand" href="{{ basePath }}">
-			<img class="rounded-sm" src="{{ logoImgString }}" alt="" width="36" height="36" />
+	<nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top py-0">
+		<a href="{{ basePath }}" style="padding: 0; margin: 0">
+			<img class="rounded-sm" src="{{ logoImgString }}" alt="" width="30" height="30" />
 		</a>
 
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 
-		<div class="collapse navbar-collapse" id="navbarSupportedContent">
-			<ul class="navbar-nav mr-auto">
-				{% if not logged_in %}
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'login_page'}}">
-							<button class="btn btn-outline-dark m-1 ml-sm-0 mr-sm-2">Log In</button>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'signup_page'}}">
-							<button class="btn btn-warning m-1 ml-sm-0 mr-sm-2">Sign Up</button>
-						</a>
-					</li>
-					<li class="nav-item">
-						<button class="btn btn-secondary m-1 ml-sm-0 mr-sm-2" disabled>You must be logged in to create a post</button>
-					</li>
-				{% else %}
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'logout'}}">
-							<button class="btn btn-outline-info m-1">Logout</button>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a href="{{ basePath ~ 'create_post_page'}}">
-							<button class="btn btn-success m-1">Create Post</button>
-						</a>
-					</li>
-				{% endif %}
-			</ul>
-		</div>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="navbar-nav">
+                {% if not logged_in %}
+                    <a class="nav-item nav-link" href="{{ basePath ~ 'login_page'}}">Log In</a>
+                    <a class="nav-item nav-link" href="{{ basePath ~ 'signup_page'}}">Sign Up</a>
+                    <a class="nav-item nav-link disabled" href="#">You must be logged in to create a post</a>
+                {% else %}
+                    <a class="nav-item nav-link" href="{{ basePath ~ 'logout'}}">Logout</a>
+                    <a class="nav-item nav-link" href="{{ basePath ~ 'create_post_page'}}">Create Post</a>
+                {% endif %}
+            </div>
+          </div>
 	</nav>
 	
 	<br />
-    <br />
-    <br />
 {% endblock %}
