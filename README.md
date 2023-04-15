@@ -18,10 +18,13 @@ Simple reddit-esque social media like website (hopefully)
 
 ## CSS
 
+- Dynamic? (does it work on mobile?)
 - Index
     - Right bar
-        - Create post
-        - Newest post
-        - Top post from today
+        - If not logged in: log in, sign up, can't create post
+        - If logged in: create post
         - ?
-    - Dynamic? (does it work on mobile?)
+    - Dynamic:
+        - Padding/margins
+        - Columns
+- Post page
