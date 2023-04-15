@@ -249,22 +249,27 @@ window.addEventListener("scroll", handleInfiniteScroll);
 
         </div>
 
-        <div class="col-0 col-lg-4 col-xl-3 position-static bg-white">
-            <div class="navbar-nav">
+        <div class="col-0 col-lg-4 col-xl-3 position-static">
+            <div class="bg-white rounded-lg px-4 py-3">
                 {% if not logged_in %}
-                    <a href="{{ basePath ~ 'login_page'}}">
-                        <button type="button" class="btn btn-primary btn-lg btn-block badge-pill p-0 m-2">Login</button>
+                    <a href="{{ basePath ~ 'login_page'}}" class="noA">
+                        <button type="button" class="btn btn-primary btn-lg btn-block p-0">Login</button>
                     </a>
-                    <a href="{{ basePath ~ 'signup_page'}}">
-                        <button type="button" class="btn btn-primary btn-lg btn-block badge-pill p-0 m-2">Sign up</button>
+                    <a href="{{ basePath ~ 'signup_page'}}" class="noA">
+                        <button type="button" class="btn btn-primary btn-lg btn-block p-0 my-2">Sign up</button>
                     </a>
-                    <a href="#">
-                        <button type="button" class="btn btn-secondary btn-lg btn-block badge-pill p-0 m-2" disabled>You must be logged in to create a post</button>
+                    <a href="#" class="noA">
+                        <button type="button" class="btn btn-secondary btn-lg btn-block p-0" disabled>You must be logged in to create a post</button>
                     </a>
                 {% else %}
-                    <a class="nav-item nav-link" href="{{ basePath ~ 'logout'}}">Logout</a>
-                    <a class="nav-item nav-link" href="{{ basePath ~ 'create_post_page'}}">Create Post</a>
+                    <a class="nav-item nav-link" href="{{ basePath ~ 'create_post_page'}}" class="noA">
+                        <button type="button" class="btn btn-success btn-lg btn-block p-0">Create Post</button>
+                    </a>
                 {% endif %}
+            </div>
+            
+            <div class="bg-white rounded-lg px-4 py-3 mt-3">
+                
             </div>
         </div>
 
