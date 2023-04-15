@@ -492,7 +492,8 @@ pub async fn get_posts(
             let id: u32 = row.get(0);
 
             let title: String = row.get(1);
-            let content: String = "".to_string(); // not needed here
+
+            let content: String = String::new(); // not needed here
 
             let date: String = row.get(3);
             let score: i32 = row.get(4);
