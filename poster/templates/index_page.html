@@ -4,7 +4,8 @@
 {{ super() }}
 
 <script>
-function upvotePost(postId) {
+function upvotePost(postId, event) {
+    event.preventDefault();
 	const upvotePath = document.getElementsByName("upvote_path-" + postId)[0].value;
 	fetch(upvotePath)
 		.then(response => response.json())
@@ -17,6 +18,7 @@ function upvotePost(postId) {
 		.catch(error => console.log(error));
 }
 function downvotePost(postId) {
+    event.preventDefault();
 	const downvotePath = document.getElementsByName("downvote_path-" + postId)[0].value;
 	fetch(downvotePath)
 		.then(response => response.json())
@@ -51,7 +53,7 @@ async function renderPostDataJsons() {
 	for (let postData of postDatas) {
 		const card = document.createElement("div");
 		card.id = "card-" + postData.post.id;
-		card.className = "card box-shadow mx-4 mb-4 mt-0";
+		card.className = "bg-white border highlight";
 
 		const postHTML = renderPost(postData, url);
 		card.innerHTML = postHTML;		
@@ -63,48 +65,56 @@ async function renderPostDataJsons() {
 function renderPost(post_data, basePath) {
 	let output = ``;
 	output += `
+<input type="hidden" name="upvote_path-${ post_data.post.id }" value="${ basePath + 'upvote_post/' + post_data.post.id }" readonly>
+<input type="hidden" name="downvote_path-${ post_data.post.id }" value="${ basePath + 'downvote_post/' + post_data.post.id }" readonly>
  
-	<h5 class="card-header">${ post_data.post.title }</h5>
-	
-	<input type="hidden" name="upvote_path-${ post_data.post.id }" value="${ basePath + 'upvote_post/' + post_data.post.id }" readonly>
-	<input type="hidden" name="downvote_path-${ post_data.post.id }" value="${ basePath + 'downvote_post/' + post_data.post.id }" readonly>
+<a href="${ basePath + 'post/' + post_data.post.id }">
+    <div class="row">
+        <div class="col-3 col-sm-2 d-flex justify-content-between align-items-center">`
 
-	<div class="card-body">
-		<h5 class="card-title text-muted">${ post_data.account.display_name }</h5>
+    if (post_data.vote_value == -2) {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1" disabled>&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2" disabled>&darr;</button>`
+    } else if (post_data.vote_value == -1) {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-danger px-2">&darr;</button>`
+    } else if (post_data.vote_value == 1) {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-success px-2 ml-1">&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+    } else {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+    }
 
-		<p class="card-text">${ post_data.post.content }</p>
+    output += `
+        </div>
 
-		<p class="card-text text-muted my-0">${ post_data.comment_count } comments</p>
-		<p id="score-${ post_data.post.id }" class="card-text text-muted my-0">${ post_data.post.score } upvotes</p>
-        <p class="card-text text-muted">${ post_data.date_string }</p>
-	`;
+        <div class="col-6 col-sm-8 smush py-1">
+            <h6 class="m-0">${ post_data.post.title }</h6>
+            <small class="m-0 text-muted">Posted by ${ post_data.account.display_name } - ${ post_data.date_string }</small >
+        </div>
 
-	if (post_data.vote_value == -2) {
-		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-success mb-2" disabled>Upvote</button>
-					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-danger mb-2" disabled>Downvote</button>`
-	} else if (post_data.vote_value == -1) {
-		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
-					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-danger mb-2">Downvote</button>`
-	} else if (post_data.vote_value == 1) {
-		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-success mb-2">Upvote</button>
-					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>`
-	} else {
-		output += `	<button onclick="upvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
-					<button onclick="downvotePost(${ post_data.post.id });" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>`
-	}
-		
-	output += `
-		<br />
+        <div class="col-3 col-sm-2 d-flex justify-content-center align-items-center">
+            <span>${ post_data.comment_count } &Copf;</span>
+        </div>
 
-		<a href="${ basePath + 'post/' + post_data.post.id }" class="btn btn-primary">View Post</a>
-	</div>
-
+    </div>
+</a>
 	`
 
 	return output;
 }
 
 
+function isEndOfPage() {
+    const endOfMessagesWarning = document.getElementById("endOfMessagesWarning");
+    const height = endOfMessagesWarning.getBoundingClientRect().bottom - endOfMessagesWarning.getBoundingClientRect().top;
+    return window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5 - height;
+}
 var throttleTimer;
 const throttle = (callback, time) => {
   if (throttleTimer) return;
@@ -116,18 +126,8 @@ const throttle = (callback, time) => {
 }
 const handleInfiniteScroll = () => {
   throttle(() => {
-    const endOfMessagesWarning = document.getElementById("endOfMessagesWarning");
-    const height = endOfMessagesWarning.getBoundingClientRect().bottom - endOfMessagesWarning.getBoundingClientRect().top;
-    const endOfPage = window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5 - height;
-    if (endOfPage) {
-		renderPostDataJsons()
-            .then(() => {
-                window.scrollBy({
-                    top: 100,
-                    left: 0,
-                    behavior: 'smooth'
-                });
-            })
+    if (isEndOfPage()) {
+		renderPostDataJsons();
     }
   }, 500);
 };
@@ -164,7 +164,7 @@ function resetSeenPosts() {
 
 document.addEventListener("DOMContentLoaded", () => {
     radioButtonOnclick();
-	renderPostDataJsons();
+    renderPostDataJsons();
 
 	const sort = document.getElementById("sort-value");
 	const radioButtons = document.getElementsByName("options");
@@ -182,14 +182,35 @@ window.addEventListener("scroll", handleInfiniteScroll);
 
 {% endblock %}
 
+{% block style %}
+{{ super() }}
+<style>
+a {
+    all: unset;
+}
+a:hover {
+    all: unset;
+    cursor: pointer;
+}
+
+.smush {
+    line-height: 0.8 !important;
+}
+
+.highlight:hover {
+    outline: 1px solid #555;
+}
+</style>
+{% endblock %}
+
 
 
 {% block body %}
 
 	<input id="sort-value" name="sort-value" type="hidden" value="{{ sort }}" />
   
-	<div class="row justify-content-center full-width">
-    	<div class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6">
+	<div class="row d-flex justify-content-around full-width bg-light">
+    	<div class="col-12 col-lg-7 col-xl-8" >
 
             <div class="btn-group btn-group-toggle px-4 mb-2" data-toggle="buttons">
                 <label class="btn btn-secondary">
@@ -213,13 +234,16 @@ window.addEventListener("scroll", handleInfiniteScroll);
             <div id="contentContainer"></div>
 
 
-            <div id="endOfMessagesWarning" class="card box-shadow m-4">
+            <div id="endOfMessagesWarning" class="card box-shadow my-2">
                 <h5 class="card-header">You have seen all the posts there are to see...</h5>
                 <div class="card-body justify-content-center">
                     <button onclick="resetSeenPosts()" class="btn btn-sm btn-outline-primary mb-2">Reset seen posts</button>
                 </div>
             </div>
 
+        </div>
+
+        <div class="col-0 col-lg-4 col-xl-3 position-static bg-info">
         </div>
 
         

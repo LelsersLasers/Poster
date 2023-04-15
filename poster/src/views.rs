@@ -485,27 +485,14 @@ pub async fn get_posts(
 
         query_string += "\nORDER BY score DESC, date DESC";
     }
-    query_string += "\nLIMIT 4;";
+    query_string += "\nLIMIT 20;";
 
     let mut stream = sqlx::query(&query_string)
         .map(|row: SqliteRow| {
             let id: u32 = row.get(0);
 
             let title: String = row.get(1);
-            let full_content: String = row.get(2);
-
-            let first_three_lines = full_content
-                .lines()
-                .take(3)
-                .collect::<Vec<&str>>()
-                .join("<br />");
-            let content_str = &first_three_lines[0..first_three_lines.len().min(400)];
-
-            let content = if content_str.len() < full_content.len() {
-                content_str.to_string() + "..."
-            } else {
-                content_str.to_string()
-            };
+            let content: String = "".to_string(); // not needed here
 
             let date: String = row.get(3);
             let score: i32 = row.get(4);

@@ -283,7 +283,7 @@ impl Post {
         };
 
         let date_string =
-            utils::padded_time_to_date_string(&self.date, "Posted on %b %-d, %Y, at %-k:%M");
+            utils::padded_time_to_date_string(&self.date, "%b %-d, %Y, at %-k:%M");
 
         PostData {
             post: self,
@@ -381,7 +381,7 @@ impl Comment {
         let vote_value = Comment::get_vote_value(self.id, self.post_id, session, pool).await;
         let account = Account::from_id(self.account_id, pool).await;
         let date_string =
-            utils::padded_time_to_date_string(&self.date, "Commented on %b %-d, %Y, at %-k:%M");
+            utils::padded_time_to_date_string(&self.date, "%b %-d, %Y, at %-k:%M");
 
         CommentTreeNode {
             comment: self,
