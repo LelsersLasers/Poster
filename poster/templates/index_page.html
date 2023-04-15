@@ -249,7 +249,23 @@ window.addEventListener("scroll", handleInfiniteScroll);
 
         </div>
 
-        <div class="col-0 col-lg-4 col-xl-3 position-static bg-info">
+        <div class="col-0 col-lg-4 col-xl-3 position-static bg-white">
+            <div class="navbar-nav">
+                {% if not logged_in %}
+                    <a href="{{ basePath ~ 'login_page'}}">
+                        <button type="button" class="btn btn-primary btn-lg btn-block badge-pill p-0 m-2">Login</button>
+                    </a>
+                    <a href="{{ basePath ~ 'signup_page'}}">
+                        <button type="button" class="btn btn-primary btn-lg btn-block badge-pill p-0 m-2">Sign up</button>
+                    </a>
+                    <a href="#">
+                        <button type="button" class="btn btn-secondary btn-lg btn-block badge-pill p-0 m-2" disabled>You must be logged in to create a post</button>
+                    </a>
+                {% else %}
+                    <a class="nav-item nav-link" href="{{ basePath ~ 'logout'}}">Logout</a>
+                    <a class="nav-item nav-link" href="{{ basePath ~ 'create_post_page'}}">Create Post</a>
+                {% endif %}
+            </div>
         </div>
 
         
