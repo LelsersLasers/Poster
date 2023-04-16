@@ -18,5 +18,6 @@ Simple reddit-esque social media like website (hopefully)
 
 ## CSS
 
+- Visual clarity to collapsed navbar?
 - Dynamic? (does it work on mobile?)
 - Post page
