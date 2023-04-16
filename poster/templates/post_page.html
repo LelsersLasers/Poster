@@ -151,8 +151,40 @@ document.addEventListener("DOMContentLoaded", function() {
 			setCommentButtonStyles(vote_value, commentId);
 		}
 	}
+
+    document.getElementsByTagName("body")[0].classList.remove("bg-white");
+    document.getElementsByTagName("body")[0].classList.add("bg-med");
 });
 </script>
+{% endblock %}
+
+{% block style %}
+{{ super() }}
+
+<style>
+.bg-med {
+    background-color: #dbe0e7 !important;
+}
+
+.commentInput {
+	/* height: 50vh !important; */
+	resize: none;
+    width: 100%;
+    
+    box-sizing: border-box;
+    height: auto;
+    font-size: 16px;
+}
+.commentInput:focus {
+    outline: 3px solid #dbe0e7;
+}
+.border-med {
+    border-color: #dbe0e7;
+}
+
+
+</style>
+
 {% endblock %}
 
 
@@ -196,52 +228,47 @@ document.addEventListener("DOMContentLoaded", function() {
 {% block body %}
 
 <div class="row justify-content-center full-width mb-2">
-	<div id="contentContainer" class="col-12 col-md-10 col-lg-8">
+	<div id="contentContainer" class="col-12 col-md-10 col-lg-8 px-0">
 
-		<div class="jumbotron m-4 py-4">
+        <div class="card mt-4 mx-0 mx-md-2">
 
-			<h5 class="display-4">{{ post_data.post.title }}</h5>
-			<p class="text-muted">{{ post_data.account.display_name }}</p>
-			<hr class="my-4">
-
-			<input type="hidden" name="upvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
+            <input type="hidden" name="upvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'upvote_post/' ~ post_data.post.id }}" readonly>
 			<input type="hidden" name="downvote_path-{{ post_data.post.id }}" value="{{ basePath ~ 'downvote_post/' ~ post_data.post.id }}" readonly>
 
-			<p class="lead">{{ post_data.post.content }}</p>
+            <div class="card-body p-4">
+                <h5 class="card-title display-3 px-2">{{ post_data.post.title }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Posted by {{ post_data.account.display_name }} on {{ post_data.date_string }}</h6>
+                <p class="card-text">{{ post_data.post.content }}</p>
+                
+                <p id="score-{{ post_data.post.id }}" class="card-text text-muted my-0">{{ post_data.post.score }} upvotes</p>
+                <!-- NOTE: syntax errors are okay here, from templating -->
+                <div id="voteButtons">
+                    <button id="upvotePostButton" onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
+                    <button id="downvotePostButton" onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>
+                </div>
+
+                {% if logged_in %}
+                    <br />
+                    <form action="{{ basePath ~ 'add_comment_to_post/' ~ post_data.post.id }}" method="post" class="">
+                            <!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
+                
+                            <textarea type="content" id="content" name="content" class="commentInput rounded-lg p-3 border border-med" placeholder="Comment"></textarea>
+                
+                            <button class="btn btn-lg btn-primary type="submit">Comment</button>
+                        </a>
+                    </form>
+                {% else %}
+                    <a class="btn btn-outline-primary btn-lg" href="{{ basePath ~ 'login_page' }}" role="button">Login to Comment</a>
+                {% endif %}
+
+                <br />
 			
-
-			<p id="score-{{ post_data.post.id }}" class="card-text text-muted my-0">{{ post_data.post.score }} upvotes</p>
-            <p class="card-text text-muted">{{ post_data.date_string }}</p>
-			<!-- NOTE: syntax errors are okay here, from templating -->
-			<div id="voteButtons">
-				<button id="upvotePostButton" onclick="upvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-success mb-2">Upvote</button>
-				<button id="downvotePostButton" onclick="downvotePost({{ post_data.post.id }});" class="btn btn-sm btn-outline-danger mb-2">Downvote</button>
-			</div>
-			<br />
-
-			{% if logged_in %}
-				<form action="{{ basePath ~ 'add_comment_to_post/' ~ post_data.post.id }}" method="post" class="">
-						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
 			
-						<textarea type="content" id="content" name="content" class="" placeholder="Comment"></textarea>
-			
-						<button class="btn btn-lg btn-primary type="submit">Comment</button>
-					</a>
-				</form>
-			{% else %}
-				<a class="btn btn-outline-primary btn-lg" href="{{ basePath ~ 'login_page' }}" role="button">Login to Comment</a>
-			{% endif %}
+                <p class="card-text text-muted">{{ post_data.comment_count }} comments</p>
 
-			<br />
-			
-			
-			<p class="card-text text-muted">{{ post_data.comment_count }} comments</p>
-
-
-			<a class="btn btn-secondary btn-sm mt-1" href="{{ basePath }}" role="button">Back</a>
-            <!-- <button class="btn btn-secondary btn-sm mt-1" onclick="history.back()">Back</button> -->
-
-		</div>
+                <a class="btn btn-secondary btn-sm mt-1" href="{{ basePath }}" role="button">Back</a>
+            </div>
+        </div>
 
 
 		{% for comment_tree_node in comment_tree_nodes %}
