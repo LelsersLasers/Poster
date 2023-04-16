@@ -14,6 +14,9 @@ function upvotePost(postId, event) {
 			const card = document.getElementById("card-" + postData.post.id);
 			const postHTML = renderPost(postData, url);
 			card.innerHTML = postHTML;
+
+            newestPost();
+            bestPost();
 		})
 		.catch(error => console.log(error));
 }
@@ -27,6 +30,9 @@ function downvotePost(postId) {
 			const card = document.getElementById("card-" + postData.post.id);
 			const postHTML = renderPost(postData, url);
 			card.innerHTML = postHTML;
+
+            newestPost();
+            bestPost();
 		})
 		.catch(error => console.log(error));
 }
