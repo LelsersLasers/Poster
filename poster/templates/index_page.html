@@ -75,36 +75,36 @@ function renderPost(post_data, basePath) {
 <input type="hidden" name="downvote_path-${ post_data.post.id }" value="${ basePath + 'downvote_post/' + post_data.post.id }" readonly>
  
 <a href="${ basePath + 'post/' + post_data.post.id }" class="noA">
-    <div class="row">
-        <div class="col-3 col-sm-2 d-flex justify-content-between align-items-center">`
+    <div class="row w-100">
+        <div class="col-3 col-sm-2 d-flex justify-content-between align-items-center pr-0">`
 
     if (post_data.vote_value == -2) {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1" disabled>&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success ml-1" disabled>&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2" disabled>&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger" disabled>&darr;</button>`
     } else if (post_data.vote_value == -1) {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success ml-1">&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-danger px-2">&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-danger">&darr;</button>`
     } else if (post_data.vote_value == 1) {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-success px-2 ml-1">&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-success ml-1">&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger">&darr;</button>`
     } else {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success ml-1">&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger">&darr;</button>`
     }
 
     output += `
         </div>
 
-        <div class="col-6 col-sm-8 smush py-2">
+        <div class="col-7 col-sm-8 smush py-2">
             <h6 class="m-0">${ post_data.post.title }</h6>
             <small class="m-0 text-muted">Posted by ${ post_data.account.display_name } - ${ post_data.date_string }</small >
         </div>
 
-        <div class="col-3 col-sm-2 d-flex justify-content-center align-items-center">
+        <div class="col-2 col-sm-2 d-flex justify-content-center align-items-center p-0">
             <span>${ post_data.comment_count } &Copf;</span>
         </div>
 
@@ -126,27 +126,34 @@ function renderSidePost(post_data, basePath) {
     <h6 class="m-0">${ post_data.post.title }</h6>
     <small class="m-0 text-muted">Posted by ${ post_data.account.display_name } - ${ post_data.date_string }</small >
 
-    <div class="d-flex justify-content-between align-items-center">`
+    <div class="row">
+        <div class="col-6">
+            <div class="d-flex justify-content-between align-items-center">`
 
     if (post_data.vote_value == -2) {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1" disabled>&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success ml-1" disabled>&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2" disabled>&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger" disabled>&darr;</button>`
     } else if (post_data.vote_value == -1) {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success ml-1">&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-danger px-2">&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-danger">&darr;</button>`
     } else if (post_data.vote_value == 1) {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-success px-2 ml-1">&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-success ml-1">&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger">&darr;</button>`
     } else {
-        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success ml-1">&uarr;</button>
                     <small>${ post_data.post.score }</small>
-                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger">&darr;</button>`
     }
 
     output += `
+            </div>
+        </div>
+        <div class="col-6 d-flex justify-content-center align-items-center p-0">
+            <span>${ post_data.comment_count } &Copf;</span>
+        </div>
     </div>
 </a>
 	`
@@ -288,10 +295,10 @@ window.addEventListener("scroll", handleInfiniteScroll);
 
 	<input id="sort-value" name="sort-value" type="hidden" value="{{ sort }}" />
   
-	<div class="row d-flex justify-content-around full-width bg-med pt-4 mt-3">
-    	<div class="col-12 col-lg-7 col-xl-8" >
+	<div class="row d-flex justify-content-around full-width bg-med pt-3 mt-2 mt-lg-3">
+    	<div class="col-12 col-lg-8 p-0 px-sm-2" >
 
-            <div class="btn-group btn-group-toggle bg-light mb-2 p-2 rounded-lg full-width" data-toggle="buttons">
+            <div class="small btn-group btn-group-toggle bg-light mb-2 p-2 rounded-lg full-width" data-toggle="buttons">
                 <label class="btn btn-light">
                     <input type="radio" name="options" id="newest">Newest
                 </label>
@@ -313,7 +320,7 @@ window.addEventListener("scroll", handleInfiniteScroll);
             <div id="contentContainer"></div>
 
 
-            <div id="endOfMessagesWarning" class="card box-shadow my-2">
+            <div id="endOfMessagesWarning" class="card box-shadow my-2 mx-0">
                 <h5 class="card-header">You have seen all the posts there are to see...</h5>
                 <div class="card-body justify-content-center">
                     <button onclick="resetSeenPosts()" class="btn btn-sm btn-outline-primary mb-2">Reset seen posts</button>
@@ -322,8 +329,9 @@ window.addEventListener("scroll", handleInfiniteScroll);
 
         </div>
 
-        <div class="col-0 col-lg-4 col-xl-3">
-            <div class="bg-white rounded-lg px-4 py-3">
+        <!-- TODO: should hide? -->
+        <div class="col-0 col-lg-4 col-xl-3 p-0 px-sm-2 d-none d-lg-block">
+            <div class="bg-white rounded-lg px-2 px-sm-4 py-3">
                 {% if not logged_in %}
                     <a href="{{ basePath ~ 'login_page'}}" class="noA">
                         <button type="button" class="btn btn-primary btn-lg btn-block py-0 px-2">Login</button>
@@ -341,13 +349,13 @@ window.addEventListener("scroll", handleInfiniteScroll);
                 {% endif %}
             </div>
             
-            <div class="bg-white rounded-lg px-4 py-3 mt-3">
+            <div class="bg-white rounded-lg px-4 py-3 mt-2 mt-lg-3">
                 <h5 class="lead">Newest Post</h5>
                 <hr class="my-1" />
                 <div id="newestPostHolder">No posts</div>
             </div>
 
-            <div class="bg-white rounded-lg px-4 py-3 mt-3">
+            <div class="bg-white rounded-lg px-4 py-3 mt-2 mt-lg-3">
                 <h5 class="lead">All Time Top Post</h5>
                 <hr class="my-1" />
                 <div id="bestPostHolder">No posts</div>

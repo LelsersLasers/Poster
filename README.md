@@ -19,11 +19,4 @@ Simple reddit-esque social media like website (hopefully)
 ## CSS
 
 - Dynamic? (does it work on mobile?)
-- Index
-    - Dynamic:
-        - Padding/margins
-        - Columns
 - Post page
-- Create post page
-    - Dynamic:
-        - Make text area bigger on mobile
