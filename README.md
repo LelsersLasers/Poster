@@ -20,11 +20,10 @@ Simple reddit-esque social media like website (hopefully)
 
 - Dynamic? (does it work on mobile?)
 - Index
-    - Right bar
-        - If not logged in: log in, sign up, can't create post
-        - If logged in: create post
-        - ?
     - Dynamic:
         - Padding/margins
         - Columns
 - Post page
+- Create post page
+    - Dynamic:
+        - Make text area bigger on mobile

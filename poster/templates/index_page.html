@@ -109,6 +109,45 @@ function renderPost(post_data, basePath) {
 	return output;
 }
 
+function renderSidePost(post_data, basePath) {
+	let output = ``;
+	output += `
+<input type="hidden" name="upvote_path-${ post_data.post.id }" value="${ basePath + 'upvote_post/' + post_data.post.id }" readonly>
+<input type="hidden" name="downvote_path-${ post_data.post.id }" value="${ basePath + 'downvote_post/' + post_data.post.id }" readonly>
+ 
+<a href="${ basePath + 'post/' + post_data.post.id }" class="noA">
+
+    <h6 class="m-0">${ post_data.post.title }</h6>
+    <small class="m-0 text-muted">Posted by ${ post_data.account.display_name } - ${ post_data.date_string }</small >
+
+    <div class="d-flex justify-content-between align-items-center">`
+
+    if (post_data.vote_value == -2) {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1" disabled>&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2" disabled>&darr;</button>`
+    } else if (post_data.vote_value == -1) {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-danger px-2">&darr;</button>`
+    } else if (post_data.vote_value == 1) {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-success px-2 ml-1">&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+    } else {
+        output += `	<button onclick="upvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-success px-2 ml-1">&uarr;</button>
+                    <small>${ post_data.post.score }</small>
+                    <button onclick="downvotePost(${ post_data.post.id }, event);" class="btn btn-sm btn-outline-danger px-2">&darr;</button>`
+    }
+
+    output += `
+    </div>
+</a>
+	`
+
+	return output;
+}
+
 
 function isEndOfPage() {
     const endOfMessagesWarning = document.getElementById("endOfMessagesWarning");
@@ -161,6 +200,31 @@ function resetSeenPosts() {
 }
 
 
+function newestPost() {
+    const newestPostHolder = document.getElementById("newestPostHolder");
+    newestPostHolder.innerHTML = "";
+    fetch(getUrl() + "get_newest_post")
+        .then((response) => response.json())
+        .then((post_data) => {
+            if (post_data != null) {
+                newestPostHolder.innerHTML = renderSidePost(post_data, getUrl());
+            }
+        });
+}
+
+function bestPost() {
+    const bestPostHolder = document.getElementById("bestPostHolder");
+    bestPostHolder.innerHTML = "";
+    fetch(getUrl() + "get_best_post")
+        .then((response) => response.json())
+        .then((post_data) => {
+            if (post_data != null) {
+                bestPostHolder.innerHTML = renderSidePost(post_data, getUrl());
+            }
+        });
+}
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
     radioButtonOnclick();
@@ -176,6 +240,12 @@ document.addEventListener("DOMContentLoaded", () => {
 			radioButton.checked = false;
 		}
 	}
+
+    newestPost();
+    setInterval(newestPost, 1 * 60 * 1000);
+
+    bestPost();
+    setInterval(bestPost, 1 * 60 * 1000);
 });
 window.addEventListener("scroll", handleInfiniteScroll);
 </script>
@@ -203,9 +273,6 @@ window.addEventListener("scroll", handleInfiniteScroll);
 .bg-med {
     background-color: #dbe0e7 !important;
 }
-/* .bg-light {
-    background-color: #dbe0e7 !important;
-} */
 </style>
 {% endblock %}
 
@@ -253,13 +320,13 @@ window.addEventListener("scroll", handleInfiniteScroll);
             <div class="bg-white rounded-lg px-4 py-3">
                 {% if not logged_in %}
                     <a href="{{ basePath ~ 'login_page'}}" class="noA">
-                        <button type="button" class="btn btn-primary btn-lg btn-block p-0">Login</button>
+                        <button type="button" class="btn btn-primary btn-lg btn-block py-0 px-2">Login</button>
                     </a>
                     <a href="{{ basePath ~ 'signup_page'}}" class="noA">
-                        <button type="button" class="btn btn-primary btn-lg btn-block p-0 my-2">Sign up</button>
+                        <button type="button" class="btn btn-primary btn-lg btn-block  py-0 px-2 my-2">Sign up</button>
                     </a>
                     <a href="#" class="noA">
-                        <button type="button" class="btn btn-secondary btn-lg btn-block p-0" disabled>You must be logged in to create a post</button>
+                        <button type="button" class="btn btn-secondary btn-lg btn-block py-0 px-2" disabled>You must be logged in to create a post</button>
                     </a>
                 {% else %}
                     <a class="nav-item nav-link" href="{{ basePath ~ 'create_post_page'}}" class="noA">
@@ -269,7 +336,15 @@ window.addEventListener("scroll", handleInfiniteScroll);
             </div>
             
             <div class="bg-white rounded-lg px-4 py-3 mt-3">
-                
+                <h5 class="lead">Newest Post</h5>
+                <hr class="my-1" />
+                <div id="newestPostHolder">No posts</div>
+            </div>
+
+            <div class="bg-white rounded-lg px-4 py-3 mt-3">
+                <h5 class="lead">All Time Top Post</h5>
+                <hr class="my-1" />
+                <div id="bestPostHolder">No posts</div>
             </div>
         </div>
 

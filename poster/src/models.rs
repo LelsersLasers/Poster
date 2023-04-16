@@ -196,6 +196,34 @@ impl Post {
             .await
             .unwrap()
     }
+    pub async fn maybe_newest_post(pool: &SqlitePool) -> Option<Post> {
+        sqlx::query(sql::GET_NEWEST_POST_SQL)
+            .map(|row: SqliteRow| Post {
+                id: row.try_get("id").unwrap(),
+                title: row.try_get("title").unwrap(),
+                content: row.try_get("content").unwrap(),
+                date: row.try_get("date").unwrap(),
+                score: row.try_get("score").unwrap(),
+                account_id: row.try_get("account_id").unwrap(),
+            })
+            .fetch_optional(pool)
+            .await
+            .unwrap()
+    }
+    pub async fn maybe_best_post(pool: &SqlitePool) -> Option<Post> {
+        sqlx::query(sql::GET_BEST_POST_SQL)
+            .map(|row: SqliteRow| Post {
+                id: row.try_get("id").unwrap(),
+                title: row.try_get("title").unwrap(),
+                content: row.try_get("content").unwrap(),
+                date: row.try_get("date").unwrap(),
+                score: row.try_get("score").unwrap(),
+                account_id: row.try_get("account_id").unwrap(),
+            })
+            .fetch_optional(pool)
+            .await
+            .unwrap()
+    }
     pub async fn count_comments(&self, pool: &SqlitePool) -> u32 {
         sqlx::query(sql::COUNT_COMMENTS_ON_POST_SQL)
             .bind(self.id)
@@ -282,8 +310,7 @@ impl Post {
             -2 // not -1, 0, 1
         };
 
-        let date_string =
-            utils::padded_time_to_date_string(&self.date, "%b %-d, %Y, at %-k:%M");
+        let date_string = utils::padded_time_to_date_string(&self.date, "%b %-d, %Y, at %-k:%M");
 
         PostData {
             post: self,
@@ -380,8 +407,7 @@ impl Comment {
 
         let vote_value = Comment::get_vote_value(self.id, self.post_id, session, pool).await;
         let account = Account::from_id(self.account_id, pool).await;
-        let date_string =
-            utils::padded_time_to_date_string(&self.date, "%b %-d, %Y, at %-k:%M");
+        let date_string = utils::padded_time_to_date_string(&self.date, "%b %-d, %Y, at %-k:%M");
 
         CommentTreeNode {
             comment: self,

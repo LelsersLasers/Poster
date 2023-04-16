@@ -62,6 +62,22 @@ pub const GET_POSTS_BASE_SQL: &str = r#"
         *
     FROM posts"#;
 
+pub const GET_NEWEST_POST_SQL: &str = r#"
+    SELECT
+        *
+    FROM posts
+    ORDER BY date DESC
+    LIMIT 1
+;"#;
+
+pub const GET_BEST_POST_SQL: &str = r#"
+    SELECT
+        *
+    FROM posts
+    ORDER BY score DESC, date DESC
+    LIMIT 1
+;"#;
+
 pub const GET_POST_FROM_ID_SQL: &str = r#"
     SELECT
         *
@@ -117,7 +133,6 @@ pub const GET_COMMENTS_ON_COMMENT_SQL: &str = r#"
         parent_comment_id = ?
     ORDER BY score DESC, date DESC
 ;"#;
-
 
 //----------------------------------------------------------------------------//
 pub const DELETE_POST_VOTE_SQL: &str = r#"

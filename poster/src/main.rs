@@ -57,7 +57,6 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
-
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(DB_PATH)
@@ -132,18 +131,20 @@ async fn main() {
     let engine = Engine::from(env);
 
     let routes = Router::new()
-        .route("/", get(views::root)) // all
+        .route("/", get(views::root)) // all - PAGE
         .route("/get_posts", get(views::get_posts)) // all
+        .route("/get_newest_post", get(views::get_newest_post)) // all
+        .route("/get_best_post", get(views::get_best_post)) // all
         .route("/reset_seen_posts", get(views::reset_seen_posts)) // all
         .route("/set_sort/:sort", get(views::set_sort)) // all
-        .route("/login_page", get(views::login_page)) // if not logged in
-        .route("/signup_page", get(views::signup_page)) // if not logged in
+        .route("/login_page", get(views::login_page)) // if not logged in - PAGE
+        .route("/signup_page", get(views::signup_page)) // if not logged in - PAGE
         .route("/login_handler", post(views::login_handler)) // if not logged in
         .route("/signup_handler", post(views::signup_handler)) // if not logged in
         .route("/logout", get(views::logout)) // if logged in
-        .route("/create_post_page", get(views::create_post_page)) // if logged in
+        .route("/create_post_page", get(views::create_post_page)) // if logged in - PAGE
         .route("/create_post", post(views::create_post)) // if logged in
-        .route("/post/:post_id", get(views::post_page)) // all
+        .route("/post/:post_id", get(views::post_page)) // all - PAGE
         .route(
             "/add_comment_to_post/:post_id",
             post(views::add_comment_to_post),

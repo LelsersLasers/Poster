@@ -521,6 +521,33 @@ pub async fn get_posts(
 
     Json(post_datas)
 }
+
+pub async fn get_newest_post(
+    State(app_state): State<AppState>,
+    session: WritableSession,
+) -> Json<Option<models::PostData>> {
+    let pool = &app_state.pool;
+    let maybe_post = models::Post::maybe_newest_post(pool).await;
+    if let Some(post) = maybe_post {
+        Json(Some(post.into_post_data(&session, pool).await))
+    } else {
+        Json(None)
+    }
+}
+
+pub async fn get_best_post(
+    State(app_state): State<AppState>,
+    session: WritableSession,
+) -> Json<Option<models::PostData>> {
+    let pool = &app_state.pool;
+    let maybe_post = models::Post::maybe_best_post(pool).await;
+    if let Some(post) = maybe_post {
+        Json(Some(post.into_post_data(&session, pool).await))
+    } else {
+        Json(None)
+    }
+}
+
 pub async fn root(
     mut session: WritableSession,
     engine: AppEngine,
