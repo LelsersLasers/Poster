@@ -138,6 +138,15 @@ function setPostButtonStyles(vote_value) {
 	}
 }
 
+function toggleComment(id) {
+    const form = document.getElementById("form-" + id);
+    if (form == null) {
+        return;
+    }
+
+    form.classList.remove("d-none");
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 	setPostButtonStyles({{ post_data.vote_value }});
 	
@@ -212,9 +221,10 @@ document.addEventListener("DOMContentLoaded", function() {
 			
 			
 			{% if logged_in %}
-				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
+                <button onclick="toggleComment({{ comment_tree_node.comment.id }})" class="btn btn-sm btn-outline-primary mb-2">Comment</button>
+                <form id="form-{{ comment_tree_node.comment.id }}" action="{{ basePath ~ 'add_comment_to_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="d-none">
                     <textarea type="content" id="content" name="content" required="" class="commentInput rounded-lg p-3 border border-med" placeholder="Comment"></textarea>
-                    <button class="btn btn-primary" type="submit">Comment</button>
+                    <button class="btn btn-primary mb-2" type="submit">Comment</button>
 				</form>
 			{% endif %}
             
