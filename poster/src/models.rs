@@ -417,7 +417,7 @@ impl Comment {
             children,
             vote_value,
             date_string,
-            parent_comment_id
+            parent_comment_id,
         }
     }
     pub async fn maybe_from_id(id: u32, post_id: u32, pool: &SqlitePool) -> Option<Self> {

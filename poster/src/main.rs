@@ -42,7 +42,7 @@ mod sql;
 mod utils;
 mod views;
 
-const PORT: u16 = 3000;
+const PORT: u16 = 8001;
 const DB_PATH: &str = "db.sqlite";
 
 const BASE_PATH: &str = "/poster";
@@ -175,7 +175,7 @@ async fn main() {
 
     let app = NormalizePathLayer::trim_trailing_slash().layer(all_routes);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], PORT));
+    let addr = SocketAddr::from(([0, 0, 0, 0], PORT));
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
