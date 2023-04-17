@@ -551,12 +551,16 @@ pub async fn get_best_post(
 pub async fn root(
     mut session: WritableSession,
     engine: AppEngine,
-    Key(key): Key,
+    Key(mut key): Key,
 ) -> impl IntoResponse {
     #[derive(Serialize)]
     pub struct IndexData {
         logged_in: bool,
         sort: String,
+    }
+
+    if key.ends_with('/') {
+        key = key.trim_end_matches('/').to_string();
     }
 
     let data = IndexData {
