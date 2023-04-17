@@ -1,22 +1,14 @@
 # Poster
 
-Simple reddit-esque social media like website (hopefully)
+Reddit without 99% of the features!
 
-## TODO
+## Showcase
 
-- Redirect "/" ("") to "/poster"
-    - Fixed?
-- Infinite scroll on main page
-    - Don't show same posts
-        - When to reset seen_post_ids??
-        - **How to handle back button???**
-- Polish and CSS
-    - Usable on multiple screen sizes, resolutions, and mobile
-- CLEAN CODE?
-    - Or just move on to next project
+todo!()
 
-## CSS
+## Main technologies used
 
-- Visual clarity to collapsed navbar?
-- Dynamic? (does it work on mobile?)
-- Post page
+- [axum](https://github.com/tokio-rs/axum): an ergonomic and modular web framework built with Tokio, Tower, and Hyper
+- [sqlx](https://github.com/launchbadge/sqlx): an async, pure Rust SQL crate featuring compile-time checked queries without a DSL
+  - With [sqlite](https://sqlite.org/index.html)
+- [minijina](https://github.com/mitsuhiko/minijinja): a powerful but minimal dependency template engine
