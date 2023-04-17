@@ -329,6 +329,7 @@ pub struct CommentTreeNode {
     pub children: Vec<CommentTreeNode>,
     pub vote_value: i32,
     pub date_string: String,
+    pub parent_comment_id: Option<u32>,
 }
 
 #[derive(Serialize)]
@@ -408,6 +409,7 @@ impl Comment {
         let vote_value = Comment::get_vote_value(self.id, self.post_id, session, pool).await;
         let account = Account::from_id(self.account_id, pool).await;
         let date_string = utils::padded_time_to_date_string(&self.date, "%b %-d, %Y, at %-k:%M");
+        let parent_comment_id = self.parent_comment_id;
 
         CommentTreeNode {
             comment: self,
@@ -415,6 +417,7 @@ impl Comment {
             children,
             vote_value,
             date_string,
+            parent_comment_id
         }
     }
     pub async fn maybe_from_id(id: u32, post_id: u32, pool: &SqlitePool) -> Option<Self> {

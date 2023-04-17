@@ -189,13 +189,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 {% macro renderCommentData(comment_tree_node, basePath) %}
-	<div class="card mx-4 my-1 p-0">
+    {% if comment_tree_node.parent_comment_id %}
+	<div class="card ml-1 ml-md-2 mr-0 mr-md-2 pt-0 pb-1">
+    {% else %}
+    <div class="card ml-0 ml-md-2 mr-0 mr-md-2 pt-0 pb-1">
+    {% endif %}
 		<div class="card-body pb-0 px-3 pt-3">
-			<h5 class="card-title">{{ comment_tree_node.account.display_name }}</h5>
+			<h6 class="card-subtitle text-muted">Commented by {{ comment_tree_node.account.display_name }} on {{ post_data.date_string }}</h6>
 			<p class="card-text">{{ comment_tree_node.comment.content }}</p>
 
-			<p id="score-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" class="card-text text-muted my-0">{{ comment_tree_node.comment.score }} upvotes</p>
-            <p class="card-text text-muted">{{ comment_tree_node.date_string }}</p>
+			<small id="score-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" class="card-text text-muted my-0">{{ comment_tree_node.comment.score }} upvotes</small>
+            <br />
 
 
 			<input type="hidden" name="upvote_path-comment-{{ post_data.post.id }}-{{ comment_tree_node.comment.id }}" value="{{ basePath ~ 'upvote_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id}}" readonly>
@@ -209,14 +213,12 @@ document.addEventListener("DOMContentLoaded", function() {
 			
 			{% if logged_in %}
 				<form action="{{ basePath ~ 'add_comment_to_comment/' ~ post_data.post.id ~ '/' ~ comment_tree_node.comment.id }}" method="post" class="">
-						<!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
-			
-						<textarea type="content" id="content" name="content" class="" placeholder="Comment"></textarea>
-			
-						<button class="btn btn-lg btn-primary type="submit">Comment</button>
-					</a>
+                    <textarea type="content" id="content" name="content" required="" class="commentInput rounded-lg p-3 border border-med" placeholder="Comment"></textarea>
+                    <button class="btn btn-primary" type="submit">Comment</button>
 				</form>
 			{% endif %}
+            
+            
 		</div>
 		{% for child_comment_tree_node in comment_tree_node.children %}
 			{{ renderCommentData(child_comment_tree_node, basePath) }}
@@ -250,12 +252,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 {% if logged_in %}
                     <br />
                     <form action="{{ basePath ~ 'add_comment_to_post/' ~ post_data.post.id }}" method="post" class="">
-                            <!-- <h3 class="h3 mb-3 font-weight-normal">Comment</h3> -->
-                
-                            <textarea type="content" id="content" name="content" class="commentInput rounded-lg p-3 border border-med" placeholder="Comment"></textarea>
-                
-                            <button class="btn btn-lg btn-primary type="submit">Comment</button>
-                        </a>
+                        <textarea type="content" id="content" name="content" required="" class="commentInput rounded-lg p-3 border border-med" placeholder="Comment"></textarea>
+                        <button class="btn btn-lg btn-primary" type="submit">Comment</button>
                     </form>
                 {% else %}
                     <a class="btn btn-outline-primary btn-lg" href="{{ basePath ~ 'login_page' }}" role="button">Login to Comment</a>
@@ -270,6 +268,7 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
         </div>
 
+        <br />
 
 		{% for comment_tree_node in comment_tree_nodes %}
 			{{ renderCommentData(comment_tree_node, basePath) }}

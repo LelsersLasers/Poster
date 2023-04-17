@@ -12,7 +12,6 @@ Simple reddit-esque social media like website (hopefully)
         - **How to handle back button???**
 - Polish and CSS
     - Usable on multiple screen sizes, resolutions, and mobile
-    - Scroll to posted comment
 - CLEAN CODE?
     - Or just move on to next project
 
@@ -21,3 +20,4 @@ Simple reddit-esque social media like website (hopefully)
 - Visual clarity to collapsed navbar?
 - Dynamic? (does it work on mobile?)
 - Post page
+    - Hide comment form until clicked for non-post
