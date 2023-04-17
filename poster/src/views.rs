@@ -485,7 +485,7 @@ pub async fn get_posts(
 
         query_string += "\nORDER BY score DESC, date DESC";
     }
-    query_string += "\nLIMIT 20;";
+    query_string += "\nLIMIT 5;";
 
     let mut stream = sqlx::query(&query_string)
         .map(|row: SqliteRow| {

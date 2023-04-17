@@ -19,6 +19,4 @@ Simple reddit-esque social media like website (hopefully)
 
 - Visual clarity to collapsed navbar?
 - Dynamic? (does it work on mobile?)
-- Index page
-    - Keep pulling in posts until screen is full
 - Post page

@@ -66,6 +66,8 @@ async function renderPostDataJsons() {
 		
 		contentContainer.appendChild(card);
 	}
+
+    return postDatas.length > 0;
 	
 }
 function renderPost(post_data, basePath) {
@@ -164,8 +166,8 @@ function renderSidePost(post_data, basePath) {
 
 function isEndOfPage() {
     const endOfMessagesWarning = document.getElementById("endOfMessagesWarning");
-    const height = endOfMessagesWarning.getBoundingClientRect().bottom - endOfMessagesWarning.getBoundingClientRect().top;
-    return window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5 - height;
+    const height = endOfMessagesWarning.getBoundingClientRect().height;
+    return window.innerHeight + window.pageYOffset >= document.body.offsetHeight - height - 25;
 }
 var throttleTimer;
 const throttle = (callback, time) => {
@@ -237,11 +239,9 @@ function bestPost() {
         });
 }
 
-
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     radioButtonOnclick();
-    renderPostDataJsons();
+    
 
 	const sort = document.getElementById("sort-value");
 	const radioButtons = document.getElementsByName("options");
@@ -259,6 +259,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     bestPost();
     setInterval(bestPost, 1 * 60 * 1000);
+
+    let notAllPostShown = true;
+    while (isEndOfPage() && notAllPostShown) {
+        notAllPostShown =  await renderPostDataJsons();
+    }
 });
 window.addEventListener("scroll", handleInfiniteScroll);
 </script>
