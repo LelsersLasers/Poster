@@ -195,10 +195,14 @@ function radioButtonOnclick() {
             if (lastSort != radioButton.id) {
                 lastSort = radioButton.id;
                 fetch(getUrl() + "set_sort/" + radioButton.id)
-                    .then((_response) => {
+                    .then(async (_response) => {
                         const contentContainer = document.getElementById("contentContainer");
                         contentContainer.innerHTML = "";
-                        renderPostDataJsons();
+                        
+                        let notAllPostShown = true;
+                        while (isEndOfPage() && notAllPostShown) {
+                            notAllPostShown =  await renderPostDataJsons();
+                        }
                     });
             }
         });
@@ -207,10 +211,14 @@ function radioButtonOnclick() {
 
 function resetSeenPosts() {
 	fetch(getUrl() + "reset_seen_posts")
-		.then((_response) => {
+		.then(async (_response) => {
 			const contentContainer = document.getElementById("contentContainer");
 			contentContainer.innerHTML = "";
-			renderPostDataJsons();
+
+			let notAllPostShown = true;
+            while (isEndOfPage() && notAllPostShown) {
+                notAllPostShown =  await renderPostDataJsons();
+            }
 		});
 }
 
