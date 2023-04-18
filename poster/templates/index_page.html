@@ -38,7 +38,7 @@ function downvotePost(postId) {
 }
 
 function getUrl() {
-	let url = new URL(window.location.href);
+	let url = window.location.href;
     while (url.endsWith("/")) {
         url = url.slice(0, -1);
     }
